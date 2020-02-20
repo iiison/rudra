@@ -20,6 +20,7 @@ lib-cov
 
 # Compiled binary
 build/*
+**/build
 
 # Dependency directory
 # Commenting this out is preferred by some people, see
