@@ -8,7 +8,7 @@ function setupAnnyang(setMessage) {
   const socket = io();
 
   const commands = {
-    'hello jarvis' : () => {
+    'hello dhruv' : () => {
       console.log('Hey Man');
       setMessage('Hey Man!');
     },
@@ -37,7 +37,7 @@ function setupAnnyang(setMessage) {
 }
 
 function App() {
-  const [ message, setMessage ] = useState('')
+  const [ message, setMessage ] = useState('Say something...')
 
   useEffect(() => setupAnnyang(setMessage), [])
 
