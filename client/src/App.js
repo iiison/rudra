@@ -8,7 +8,7 @@ function setupAnnyang(setMessage) {
   const socket = io();
 
   const commands = {
-    'hello dhruv' : () => {
+    'hello' : () => {
       console.log('Hey Man');
       setMessage('Hey Man!');
     },
@@ -24,10 +24,27 @@ function setupAnnyang(setMessage) {
         operation : 'open',
         file : `${file.replace(/\s/g, '')}`.toLowerCase()
       })
+    },
+    'select :fileIndex file' : (fileIndex) => {
+      setMessage(`Selected ${fileIndex}`)
+
+      console.log('*****************************')
+      console.log(fileIndex)
+      console.log('*****************************')
+
+      // socket.emit('openFile', {
+      //   operation : 'open',
+      //   file : `${file.replace(/\s/g, '')}`.toLowerCase()
+      // })
     }
   }
 
-  socket.on('openFile', data => {
+  socket.on('openFile', (data = {}) => {
+    const { filteredFiles } = data
+    if (filteredFiles && filteredFiles.length) {
+      setMessage(`I found ${filteredFiles.length} files:`)
+    }
+
     console.log(data)
   })
 
