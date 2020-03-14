@@ -27,7 +27,7 @@ ioServer.on('connection', client => {
     console.log('openFile', filteredFiles)
     console.log('*****************************')
 
-    ioServer.emit('openFile', { filteredFiles })
+    ioServer.emit('openFile', { filteredFiles, file : data.file })
   })
 
   client.on('disconnect', client => {

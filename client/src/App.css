@@ -36,3 +36,39 @@
     transform: rotate(360deg);
   }
 }
+
+.t-left{
+  text-align: left;
+  font-size: 0.7em;
+}
+
+.fa-js-square{
+  color: #f0db4f;
+}
+
+.fa-css3-alt{
+  color: #2965f1;
+}
+
+.fa-html5{
+  color: #e34c26;
+}
+
+.fa-react{
+  color:  #61dbfb;
+}
+
+.fa-code{
+  color: #fff;
+}
+
+.file-item{
+  transition: all 0.5s ease-in-out;
+  cursor: pointer;
+  padding: 10px 20px;
+  margin: 5px;
+}
+
+.file-item:hover{
+  background-color: #363a42;
+}
