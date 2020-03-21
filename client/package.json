@@ -97,6 +97,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-export-default-from": "^7.8.3",
     "babel-plugin-prismjs": "^2.0.1",
     "eslint-plugin-flowtype": "^3.13.0",
     "fibers": "^4.0.2",
@@ -162,6 +163,7 @@
       "react-app"
     ],
     "plugins": [
+      "@babel/plugin-proposal-export-default-from",
       [
         "prismjs",
         {

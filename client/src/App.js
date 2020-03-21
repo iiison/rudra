@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import io                             from 'socket.io-client'
 import annyang                        from 'annyang'
 import Prism                          from 'prismjs'
+import { useSelector } from 'react-redux'
 
 import monk from './monk.png'
 
@@ -18,8 +19,7 @@ function renderFile({ setSelectedFile, fileName }) {
     socket.emit('renderFile', {
       operation : 'render',
       fileName
-    })
-}
+    }) }
 
 function formatFileNames({ filteredFiles, setSelectedFile }) {
   const fileExtensionElementMap = {
@@ -107,6 +107,11 @@ function App() {
   const [ selectedFile, setSelectedFile ] = useState([])
   const [ message, setMessage ] = useState('Ask something to Dhruv...')
   const [ renderedContent, setRenderedContent ] = useState('')
+  const test = useSelector(state => state.test)
+
+  console.log('*****************************')
+  console.log(test)
+  console.log('*****************************')
 
   useEffect(() => setupAnnyang({
     setRenderedContent,
