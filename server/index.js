@@ -1,3 +1,4 @@
+const fs               = require('fs');
 const path             = require('path');
 const express          = require('express');
 const bodyParser       = require('body-parser');
@@ -28,6 +29,12 @@ ioServer.on('connection', client => {
     console.log('*****************************')
 
     ioServer.emit('openFile', { filteredFiles, file : data.file })
+  });
+
+  client.on('renderFile', data => {
+    const fileContent = fs.readFileSync(data.fileName, 'utf8')
+
+    ioServer.emit('renderFile', { fileContent, ...data })
   })
 
   client.on('disconnect', client => {

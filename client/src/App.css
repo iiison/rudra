@@ -3,13 +3,12 @@
 }
 
 .App-logo {
-  height: 40vmin;
   pointer-events: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+    animation: App-logo-spin infinite 4s linear;
   }
 }
 
@@ -29,12 +28,21 @@
 }
 
 @keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  0% {
+		/* box-shadow: 0 5px 15px 0px rgba(0,0,0,0.6); */
+		transform: translateY(0px);
+    opacity: 0;
+	}
+	50% {
+		/* box-shadow: 0 25px 15px 0px rgba(0,0,0,0.2); */
+		transform: translateY(-7px);
+    opacity: 0.65;
+	}
+	100% {
+		/* box-shadow: 0 5px 15px 0px rgba(0,0,0,0.6); */
+		transform: translateY(0px);
+    opacity: 0;
+	}
 }
 
 .t-left{
@@ -71,4 +79,12 @@
 
 .file-item:hover{
   background-color: #363a42;
+}
+
+.code-toolbar{
+  font-size: 0.7em;
+}
+
+.monk{
+  width: 130px;
 }
