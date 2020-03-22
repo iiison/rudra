@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import io                             from 'socket.io-client'
 import annyang                        from 'annyang'
 import Prism                          from 'prismjs'
-import { useSelector } from 'react-redux'
+import { useSelector }                from 'react-redux';
+import Editor                         from 'react-simple-code-editor';
+import { highlight, languages }       from 'prismjs/components/prism-core'
 
 import monk from './monk.png'
 
@@ -105,7 +107,7 @@ function setupAnnyang({ setMessage, setFiles, setSelectedFile, setRenderedConten
 function App() {
   const [ files, setFiles ] = useState([])
   const [ selectedFile, setSelectedFile ] = useState([])
-  const [ message, setMessage ] = useState('Ask something to Dhruv...')
+  const [ message, setMessage ] = useState('Ask something to Rudra...')
   const [ renderedContent, setRenderedContent ] = useState('')
   const test = useSelector(state => state.test)
 
@@ -134,11 +136,16 @@ function App() {
           </div>
           {
             renderedContent && (
-              <pre className="line-numbers">
-                <code className="language-js">
-                  {renderedContent}
-                </code>
-              </pre>
+              <Editor
+                value={renderedContent}
+                onValueChange={code => setRenderedContent(code)}
+                highlight={code => highlight(code, languages.js)}
+                padding={10}
+                style={{
+                  fontFamily: '"Fira code", "Fira Mono", monospace',
+                  fontSize: 12,
+                }}
+              />
             )
           }
         </p>
