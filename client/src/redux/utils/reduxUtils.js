@@ -53,6 +53,7 @@ export function makeReducer({
     } : initialState
 
   return function (state = mergedState, action) {
+    const moreActions = additionalActions ? additionalActions(state, action) : {}
     const options = {
       [actionName] : () => ({
         ...state,
@@ -69,7 +70,7 @@ export function makeReducer({
         isFetching : false,
         response   : action.response
       }),
-      ...additionalActions ? additionalActions(state, action) : {}
+      ...moreActions
     }
 
     return action.type && options[action.type] ? options[action.type]() : state

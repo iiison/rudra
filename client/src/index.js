@@ -1,15 +1,25 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux'
+import { BrowserRouter } from 'react-router-dom'
+import io from 'socket.io-client'
+import annyang from 'annyang'
 
 import store from './configs/store'
+import routes from './configs/routes'
 import './index.css';
-import App from './App';
 import * as serviceWorker from './serviceWorker';
+
+export const socket = io()
+
+annyang.setLanguage('en-IN')
+annyang.start()
 
 ReactDOM.render(
   <Provider store={store}>
-    <App />
+    <BrowserRouter>
+      {routes()}
+    </BrowserRouter>
   </Provider>, 
   document.getElementById('root')
 );
@@ -18,3 +28,4 @@ ReactDOM.render(
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://bit.ly/CRA-PWA
 serviceWorker.unregister();
+

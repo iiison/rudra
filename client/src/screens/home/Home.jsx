@@ -1,26 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import io                             from 'socket.io-client'
-import annyang                        from 'annyang'
 import Prism                          from 'prismjs'
-import { useSelector }                from 'react-redux';
+import { useSelector, useDispatch }   from 'react-redux';
+import { useLocation, useHistory }    from 'react-router-dom'
+import annyang                        from 'annyang'
+
+import { socket } from '../../index'
+import { setQueryResults } from '../../redux/modules/home/home'
 
 // react-simple-code-editor Deps
 // import Editor                         from 'react-simple-code-editor';
 // import { highlight, languages }       from 'prismjs/components/prism-core'
 
 // react-ace deps
-import AceEditor from "react-ace";
-import "ace-builds/src-noconflict/mode-javascript";
-import "ace-builds/src-noconflict/theme-monokai";
+import AceEditor from 'react-ace';
+import 'ace-builds/src-noconflict/mode-javascript';
+import 'ace-builds/src-noconflict/theme-monokai';
 
-import monk from './monk.png'
+import monk from './images/monk.png'
 
 import '@fortawesome/fontawesome-free/css/fontawesome.min.css'
 import '@fortawesome/fontawesome-free/css/all.min.css'
 import '@fortawesome/fontawesome-free/css/solid.min.css'
 import './App.css';
 
-const socket = io();
+// const socket = io();
 
 function renderFile({ setSelectedFile, fileName }) {
   setSelectedFile(fileName)
@@ -28,7 +31,7 @@ function renderFile({ setSelectedFile, fileName }) {
   socket.emit('renderFile', {
     operation : 'render',
     fileName
-  })
+  }) 
 }
 
 function formatFileNames({ filteredFiles, setSelectedFile }) {
@@ -52,7 +55,15 @@ function formatFileNames({ filteredFiles, setSelectedFile }) {
   })
 }
 
-function setupAnnyang({ setMessage, setFiles, setSelectedFile, setRenderedContent }) {
+function setupAnnyang({
+  history,
+  location,
+  dispatch,
+  setFiles,
+  setMessage,
+  setSelectedFile,
+  setRenderedContent,
+}) {
   const commands = {
     'hello' : () => {
       console.log('Hey Man! Let\'s do this thing!');
@@ -80,9 +91,12 @@ function setupAnnyang({ setMessage, setFiles, setSelectedFile, setRenderedConten
 
   socket.on('openFile', (data = {}) => {
     const { filteredFiles, file } = data
+
     if (filteredFiles && filteredFiles.length) {
       setMessage(`I found ${filteredFiles.length} files:`)
       setFiles(formatFileNames({ filteredFiles, setSelectedFile }))
+      dispatch(setQueryResults(filteredFiles))
+      history.push(`/explore/${file}`)
     } else {
       setMessage(`I couldn't find any file with this name: ${file}.`)
       setFiles([])
@@ -96,6 +110,7 @@ function setupAnnyang({ setMessage, setFiles, setSelectedFile, setRenderedConten
 
     setMessage(`${fileName}: `)
     setRenderedContent(fileContent)
+
     // if (filteredFiles && filteredFiles.length) {
     //   setMessage(`I found ${filteredFiles.length} files:`)
     //   setFiles(formatFileNames({ filteredFiles, setSelectedFile }))
@@ -107,12 +122,7 @@ function setupAnnyang({ setMessage, setFiles, setSelectedFile, setRenderedConten
     console.log(data)
   })
 
-  // Temp, only for testing
-  window.a = annyang
-
   annyang.addCommands(commands)
-  annyang.setLanguage('en-IN')
-  annyang.start()
 }
 
 function App() {
@@ -120,17 +130,18 @@ function App() {
   const [ selectedFile, setSelectedFile ] = useState([])
   const [ message, setMessage ] = useState('Ask something to Rudra...')
   const [ renderedContent, setRenderedContent ] = useState('')
-  const test = useSelector(state => state.test)
-
-  console.log('*****************************')
-  console.log(test)
-  console.log('*****************************')
+  const dispatch = useDispatch()
+  const location = useLocation()
+  const history = useHistory()
 
   useEffect(() => setupAnnyang({
     setRenderedContent,
     setSelectedFile,
     setMessage,
-    setFiles
+    setFiles,
+    dispatch,
+    location,
+    history
   }), [])
 
   useEffect(() => () => Prism.highlightAll(), [renderedContent])
@@ -151,8 +162,8 @@ function App() {
                 tabSize={2}
                 width='auto'
                 fontSize={18}
-                theme="monokai"
-                mode="javascript"
+                theme='monokai'
+                mode='javascript'
                 name={selectedFile}
                 value={renderedContent}
                 enableLiveAutocompletion={true}
@@ -170,8 +181,8 @@ function App() {
 export default App;
 
 /*
- <pre className="line-numbers">
-  <code className="language-js">
+ <pre className='line-numbers'>
+  <code className='language-js'>
     {renderedContent}
   </code>
 </pre>
