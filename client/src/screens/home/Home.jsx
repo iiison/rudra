@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Prism                          from 'prismjs'
-import { useSelector, useDispatch }   from 'react-redux';
+import { useDispatch }                from 'react-redux';
 import { useLocation, useHistory }    from 'react-router-dom'
 import annyang                        from 'annyang'
 
@@ -11,33 +10,22 @@ import { setQueryResults } from '../../redux/modules/home/home'
 // import Editor                         from 'react-simple-code-editor';
 // import { highlight, languages }       from 'prismjs/components/prism-core'
 
-// react-ace deps
-import AceEditor from 'react-ace';
-import 'ace-builds/src-noconflict/mode-javascript';
-import 'ace-builds/src-noconflict/theme-monokai';
-
 import monk from './images/monk.png'
-
-import '@fortawesome/fontawesome-free/css/fontawesome.min.css'
-import '@fortawesome/fontawesome-free/css/all.min.css'
-import '@fortawesome/fontawesome-free/css/solid.min.css'
 import './App.css';
 
 // const socket = io();
 
-function renderFile({ setSelectedFile, fileName, push, pathname }) {
-  if (!pathname.includes('/explore')){
-    push('/explore/home')
-  }
-  setSelectedFile(fileName)
-
-  socket.emit('renderFile', {
-    operation : 'render',
-    fileName
-  }) 
+function renderFile({ index, file, push }) {
+  push(`/explore/${file}/${index}`)
 }
 
-function formatFileNames({ filteredFiles, setSelectedFile, push, pathname }) {
+function formatFileNames({ 
+  push,
+  file,
+  pathname,
+  filteredFiles, 
+  setSelectedFile
+}) {
   const fileExtensionElementMap = {
     js      : <i class='fab fa-js-square'></i>,
     css     : <i class='fab fa-css3-alt'></i>,
@@ -46,12 +34,12 @@ function formatFileNames({ filteredFiles, setSelectedFile, push, pathname }) {
     jsx     : <i class='fab fa-react'></i>,
     default : <i class='fas fa-code'></i>,
   }
-  return filteredFiles.map((fileName) => {
+  return filteredFiles.map((fileName, index) => {
     const extension = fileName.slice(fileName.lastIndexOf('.') + 1)
     const iconElement = fileExtensionElementMap[extension] || fileExtensionElementMap.default
 
     return (
-      <p onClick={() => renderFile({ setSelectedFile, fileName, push, pathname })} className='file-item'>
+      <p onClick={() => renderFile({ index, file, push })} className='file-item'>
         {iconElement} {fileName}
       </p>
     )
@@ -59,9 +47,7 @@ function formatFileNames({ filteredFiles, setSelectedFile, push, pathname }) {
 }
 
 function goHome(path, push) {
-  if (path !== '/') {
-    push('/')
-  }
+  push('/')
 }
 
 function setupAnnyang({
@@ -70,8 +56,7 @@ function setupAnnyang({
   dispatch,
   setFiles,
   setMessage,
-  setSelectedFile,
-  setRenderedContent,
+  setSelectedFile
 }) {
   const commands = {
     'hello' : () => {
@@ -106,7 +91,7 @@ function setupAnnyang({
 
     if (filteredFiles && filteredFiles.length) {
       setMessage(`I found ${filteredFiles.length} files:`)
-      setFiles(formatFileNames({ filteredFiles, setSelectedFile, push, pathname }))
+      setFiles(formatFileNames({ filteredFiles, setSelectedFile, push, pathname, file }))
       dispatch(setQueryResults(filteredFiles))
     } else {
       setMessage(`I couldn't find any file with this name: ${file}.`)
@@ -116,47 +101,23 @@ function setupAnnyang({
     console.log(data)
   })
 
-  socket.on('renderFile', (data = {}) => {
-    const { fileContent, fileName } = data
-
-    setMessage(`${fileName}: `)
-    setRenderedContent(fileContent)
-
-    // if (filteredFiles && filteredFiles.length) {
-    //   setMessage(`I found ${filteredFiles.length} files:`)
-    //   setFiles(formatFileNames({ filteredFiles, setSelectedFile }))
-    // } else {
-    //   setMessage(`I couldn't find any file with this name: ${file}.`)
-    //   setFiles([])
-    // }
-
-    console.log(data)
-  })
-
   annyang.addCommands(commands)
 }
 
 function App() {
   const [ files, setFiles ] = useState([])
-  const [ selectedFile, setSelectedFile ] = useState([])
   const [ message, setMessage ] = useState('Ask something to Rudra...')
-  const [ renderedContent, setRenderedContent ] = useState('')
   const dispatch = useDispatch()
   const location = useLocation()
   const history = useHistory()
 
   useEffect(() => setupAnnyang({
-    setRenderedContent,
-    setSelectedFile,
     setMessage,
     setFiles,
     dispatch,
     location,
     history
   }), [])
-
-  useEffect(() => () => Prism.highlightAll(), [renderedContent])
-  window.pr = Prism
 
   return (
     <div className='App'>
@@ -167,22 +128,6 @@ function App() {
           <div className='t-left'>
             {files.length > 0 && files}
           </div>
-          {
-            renderedContent && (
-              <AceEditor
-                tabSize={2}
-                width='auto'
-                fontSize={18}
-                theme='monokai'
-                mode='javascript'
-                name={selectedFile}
-                value={renderedContent}
-                enableLiveAutocompletion={true}
-                editorProps={{ $blockScrolling: true }}
-                onChange={code => setRenderedContent(code)}
-              />
-            )
-          }
         </p>
       </header>
     </div>
