@@ -15,6 +15,7 @@ const projPath = path.join(__dirname, '../../test')
 
 app.use(express.static(path.join(__dirname, 'artefacts')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'artefacts', 'index.html')));
+app.get('*', (req, res) => res.redirect('/'));
 
 ioServer.on('connection', client => {
   client.on('event', data => {

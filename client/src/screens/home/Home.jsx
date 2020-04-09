@@ -25,7 +25,10 @@ import './App.css';
 
 // const socket = io();
 
-function renderFile({ setSelectedFile, fileName }) {
+function renderFile({ setSelectedFile, fileName, push, pathname }) {
+  if (!pathname.includes('/explore')){
+    push('/explore/home')
+  }
   setSelectedFile(fileName)
 
   socket.emit('renderFile', {
@@ -34,7 +37,7 @@ function renderFile({ setSelectedFile, fileName }) {
   }) 
 }
 
-function formatFileNames({ filteredFiles, setSelectedFile }) {
+function formatFileNames({ filteredFiles, setSelectedFile, push, pathname }) {
   const fileExtensionElementMap = {
     js      : <i class='fab fa-js-square'></i>,
     css     : <i class='fab fa-css3-alt'></i>,
@@ -48,11 +51,17 @@ function formatFileNames({ filteredFiles, setSelectedFile }) {
     const iconElement = fileExtensionElementMap[extension] || fileExtensionElementMap.default
 
     return (
-      <p onClick={() => renderFile({ setSelectedFile, fileName })} className='file-item'>
+      <p onClick={() => renderFile({ setSelectedFile, fileName, push, pathname })} className='file-item'>
         {iconElement} {fileName}
       </p>
     )
   })
+}
+
+function goHome(path, push) {
+  if (path !== '/') {
+    push('/')
+  }
 }
 
 function setupAnnyang({
@@ -66,17 +75,18 @@ function setupAnnyang({
 }) {
   const commands = {
     'hello' : () => {
-      console.log('Hey Man! Let\'s do this thing!');
+      goHome(location.pathname, history.push)
       setMessage('Hey Man! Let\'s do this thing!');
     },
 
     'search for file *file' : (file) => {
+      goHome(location.pathname, history.push)
       setMessage(`open ${file}`)
 
       socket.emit('openFile', {
         operation : 'open',
         file : `${file.replace(/\s/g, '')}`.toLowerCase()
-      })
+      });
     },
 
     'select :fileIndex file' : (fileIndex) => {
@@ -91,12 +101,13 @@ function setupAnnyang({
 
   socket.on('openFile', (data = {}) => {
     const { filteredFiles, file } = data
+    const { push } = history
+    const { pathname } = location
 
     if (filteredFiles && filteredFiles.length) {
       setMessage(`I found ${filteredFiles.length} files:`)
-      setFiles(formatFileNames({ filteredFiles, setSelectedFile }))
+      setFiles(formatFileNames({ filteredFiles, setSelectedFile, push, pathname }))
       dispatch(setQueryResults(filteredFiles))
-      history.push(`/explore/${file}`)
     } else {
       setMessage(`I couldn't find any file with this name: ${file}.`)
       setFiles([])
