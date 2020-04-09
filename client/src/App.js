@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react';
 import io                             from 'socket.io-client'
 import annyang                        from 'annyang'
 import Prism                          from 'prismjs'
+import { useSelector }                from 'react-redux';
+
+// react-simple-code-editor Deps
+// import Editor                         from 'react-simple-code-editor';
+// import { highlight, languages }       from 'prismjs/components/prism-core'
+
+// react-ace deps
+import AceEditor from "react-ace";
+import "ace-builds/src-noconflict/mode-javascript";
+import "ace-builds/src-noconflict/theme-monokai";
 
 import monk from './monk.png'
 
@@ -15,10 +25,10 @@ const socket = io();
 function renderFile({ setSelectedFile, fileName }) {
   setSelectedFile(fileName)
 
-    socket.emit('renderFile', {
-      operation : 'render',
-      fileName
-    })
+  socket.emit('renderFile', {
+    operation : 'render',
+    fileName
+  })
 }
 
 function formatFileNames({ filteredFiles, setSelectedFile }) {
@@ -97,6 +107,9 @@ function setupAnnyang({ setMessage, setFiles, setSelectedFile, setRenderedConten
     console.log(data)
   })
 
+  // Temp, only for testing
+  window.a = annyang
+
   annyang.addCommands(commands)
   annyang.setLanguage('en-IN')
   annyang.start()
@@ -105,8 +118,13 @@ function setupAnnyang({ setMessage, setFiles, setSelectedFile, setRenderedConten
 function App() {
   const [ files, setFiles ] = useState([])
   const [ selectedFile, setSelectedFile ] = useState([])
-  const [ message, setMessage ] = useState('Ask something to Dhruv...')
+  const [ message, setMessage ] = useState('Ask something to Rudra...')
   const [ renderedContent, setRenderedContent ] = useState('')
+  const test = useSelector(state => state.test)
+
+  console.log('*****************************')
+  console.log(test)
+  console.log('*****************************')
 
   useEffect(() => setupAnnyang({
     setRenderedContent,
@@ -129,11 +147,18 @@ function App() {
           </div>
           {
             renderedContent && (
-              <pre className="line-numbers">
-                <code className="language-js">
-                  {renderedContent}
-                </code>
-              </pre>
+              <AceEditor
+                tabSize={2}
+                width='auto'
+                fontSize={18}
+                theme="monokai"
+                mode="javascript"
+                name={selectedFile}
+                value={renderedContent}
+                enableLiveAutocompletion={true}
+                editorProps={{ $blockScrolling: true }}
+                onChange={code => setRenderedContent(code)}
+              />
             )
           }
         </p>
@@ -143,4 +168,12 @@ function App() {
 }
 
 export default App;
+
+/*
+ <pre className="line-numbers">
+  <code className="language-js">
+    {renderedContent}
+  </code>
+</pre>
+*/
 

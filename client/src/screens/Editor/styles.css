@@ -1,0 +1,29 @@
+.editor-cont {
+  background-color : #282c34;
+  min-height : 100vh;
+  color: #fff;
+}
+
+.editor-header{
+  background-color : #242730;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  position: fixed;
+  width: 100%;
+  z-index: 9999;
+}
+
+.editor-header h1{
+  margin: 0;
+  font-size: 25px;
+}
+
+.small-monk{
+  height: 40px;
+  margin-right: 15px;
+}
+
+.editor{
+  padding-top: 62px;
+}
