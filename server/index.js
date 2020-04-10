@@ -38,6 +38,36 @@ ioServer.on('connection', client => {
     ioServer.emit('renderFile', { fileContent, ...data })
   })
 
+  client.on('addNewItem', data => {
+    const {
+      line,
+      type,
+      name,
+      file
+    } = data
+    const parsedLine = parseInt(line) - 1
+
+    const fileContent = fs.readFileSync(file, 'utf8')
+    const fileContentByLine = fileContent.split(/\r?\n/)
+    const firstPart = fileContentByLine.slice(0, parsedLine)
+    const lastPart = fileContentByLine.slice(parsedLine)
+    const newPart = `const ${name} = 23`
+
+    console.log('-----------------------------')
+    console.log(parsedLine)
+    console.log(fileContentByLine[parsedLine])
+    console.log('-----------------------------')
+
+    ioServer.emit('addNewVariable', {
+      ...data,
+      fileContent : [
+        ...firstPart,
+        newPart,
+        ...lastPart
+      ].join('\n')
+    })
+  })
+
   client.on('disconnect', client => {
     console.log('Connection closed!')
   });
