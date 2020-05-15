@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Prism                          from 'prismjs'
 import { useSelector }                from 'react-redux';
 import { useParams }                  from 'react-router-dom'
-// import annyang                     from 'annyang'
+import annyang                     from 'annyang'
 
 import { socket } from '../../index'
 
@@ -22,6 +22,17 @@ function setupPage({
   setRenderedContent,
   selectedFilePath
 }){
+  const commands = {
+    'add variable at line number :line with name *name' : (line, name) => {
+      socket.emit('addNewItem', {
+        line,
+        name,
+        type : 'variable',
+        file : selectedFilePath
+      })
+    }
+  }
+
   socket.on('renderFile', (data = {}) => {
     const { fileContent } = data
 
@@ -34,9 +45,15 @@ function setupPage({
     //   setMessage(`I couldn't find any file with this name: ${file}.`)
     //   setFiles([])
     // }
-
-    console.log(data)
   })
+
+  socket.on('addNewVariable', (data = {}) => {
+    const { fileContent } = data
+
+    setRenderedContent(fileContent)
+  })
+
+  annyang.addCommands(commands)
 }
 
 export default function Editor() {

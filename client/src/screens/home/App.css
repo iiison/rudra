@@ -75,6 +75,8 @@
   cursor: pointer;
   padding: 10px 20px;
   margin: 5px;
+  display: flex;
+  align-items: flex-end;
 }
 
 .file-item:hover{
@@ -87,4 +89,8 @@
 
 .monk{
   width: 130px;
+}
+
+.file-name{
+  margin: 0 5px;
 }
