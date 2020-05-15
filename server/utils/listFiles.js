@@ -41,20 +41,42 @@ async function getAllDirs(dir, configs = {}, dirs = []) {
   return dirs.map(dirPath => `${dirPath}/`)
 }
 
+function filterNames(fullSet, patterns) {
+  const filtered = patterns
+    .map(
+      (pattern) => fullSet.filter(
+        entry => (entry && entry.toLowerCase().includes(pattern.toLowerCase())
+      ))
+    ).flat()
+
+  return [...new Set(filtered)]
+}
+
 async function findFile(directory, fileName) {
   const files = await getAllFiles(directory)
   // const fzFiltered = fuzzy.filter(fileName, files)
 
-  const filtered = files.filter(file => (file && file.includes(fileName)))
+  // const filtered = fileName
+  //   .map(
+  //     (file) => files.filter(filePath => (filePath && filePath.includes(file)))
+  //   ).flat()
 
-  return filtered
+  // const filteredUniq = [...new Set(filtered)]
+  const filteredUniq = filterNames(files, fileName)
+
+  return filteredUniq
 }
 
 
 async function findDirectory(directory, dirName) {
-  const dirs = await getAllDirs(directory)
+  console.log('*****************************')
+  console.log(directory, dirName)
+  console.log('*****************************')
 
-  return dirs.filter(dir => dir.includes(dirName));
+  const dirs = await getAllDirs(directory)
+  const filtered = filterNames(dirs, dirName)
+
+  return filtered;
 }
 
 module.exports = {

@@ -81,7 +81,7 @@ function setupAnnyang({
 
       socket.emit('openFile', {
         operation : 'open',
-        file : `${file.replace(/\s/g, '')}`.toLowerCase()
+        file : file.split(' ')
       });
     },
 
@@ -96,14 +96,14 @@ function setupAnnyang({
 
     'make new directory at *path' : (path) => {
       socket.emit('make directory', {
-        path      : `${path.replace(/\s/g, '')}`.toLowerCase(),
+        path      : path.split(' '),
         operation : 'list directory'
       })
     },
 
     'make new file at *path' : (path) => {
       socket.emit('make file', {
-        path      : `${path.replace(/\s/g, '')}`.toLowerCase(),
+        path      : path.split(' '),
         operation : 'list directory'
       })
     }

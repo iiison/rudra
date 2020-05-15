@@ -34,9 +34,13 @@ ioServer.on('connection', client => {
   });
 
   client.on('openFile', async data => {
+    console.log('*****************************')
+    console.log(data.file)
+    console.log('*****************************')
+
     const filteredFiles = await findFile(projPath, data.file)
 
-    ioServer.emit('openFile', { filteredFiles, file : data.file })
+    ioServer.emit('openFile', { filteredFiles, file : data.file.join(' ') })
   });
 
   client.on('make directory', async ({ path, operation, dirName }) => {
@@ -46,7 +50,7 @@ ioServer.on('connection', client => {
       ioServer.emit('list directory', {
         filteredDirs,
         listFor : 'directory',
-        file : path
+        file : path.join(' ')
       })
     } else if (operation === 'create directory') {
       let exceptions
@@ -78,7 +82,7 @@ ioServer.on('connection', client => {
       ioServer.emit('list directory', {
         filteredDirs,
         listFor : 'file',
-        file : path
+        file : path.join(' ')
       })
     } else if (operation === 'create file') {
       let exceptions
