@@ -43,16 +43,66 @@ ioServer.on('connection', client => {
     if (operation === 'list directory') {
       const filteredDirs = await findDirectory(projPath, path)
 
-      ioServer.emit('make directory', { filteredDirs, file : path })
+      ioServer.emit('list directory', {
+        filteredDirs,
+        listFor : 'directory',
+        file : path
+      })
     } else if (operation === 'create directory') {
-      console.log('*****************************')
-      console.log(fs.existsSync(dirName))
-      console.log('*****************************')
+      let exceptions
 
       if (!fs.existsSync(dirName)){
         const dirPath = dirName
-        fs.mkdirSync(dirPath);
+
+        try {
+          fs.mkdirSync(dirPath);
+        } catch(error) {
+          exceptions = error
+        }
+      } else {
+        exceptions = 'Directory already exists.'
       }
+
+      ioServer.emit('create directory status', {
+        dirName,
+        exceptions,
+        listFor : 'directory'
+      })
+    }
+  })
+
+  client.on('make file', async ({ path, operation, dirName }) => {
+    if (operation === 'list directory') {
+      const filteredDirs = await findDirectory(projPath, path)
+
+      ioServer.emit('list directory', {
+        filteredDirs,
+        listFor : 'file',
+        file : path
+      })
+    } else if (operation === 'create file') {
+      let exceptions
+
+      if (!fs.existsSync(dirName)){
+        const dirPath = dirName
+
+        try {
+          fs.writeFileSync(dirPath, '// Add code here.', {
+            encoding: 'utf8',
+            mode: 0o755
+          });
+        } catch(error) {
+          exceptions = error
+        }
+      } else {
+        exceptions = 'Directory already exists.'
+      }
+
+      ioServer.emit('create directory status', {
+        dirName,
+        exceptions,
+        listFor : 'file'
+      })
     }
   })
 

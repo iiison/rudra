@@ -70,7 +70,9 @@ function setupAnnyang({
   const commands = {
     'hello' : () => {
       annyang.trigger('go home')
+
       setMessage('Hey Man! Let\'s do this thing!');
+      setFiles([])
     },
 
     'search for file *file' : (file) => {
@@ -97,6 +99,13 @@ function setupAnnyang({
         path      : `${path.replace(/\s/g, '')}`.toLowerCase(),
         operation : 'list directory'
       })
+    },
+
+    'make new file at *path' : (path) => {
+      socket.emit('make file', {
+        path      : `${path.replace(/\s/g, '')}`.toLowerCase(),
+        operation : 'list directory'
+      })
     }
   }
 
@@ -117,10 +126,10 @@ function setupAnnyang({
     console.log(data)
   })
 
-  socket.on('make directory', (data = {}) => {
+  socket.on('list directory', (data = {}) => {
     annyang.trigger('go home')
 
-    const { filteredDirs, path } = data
+    const { filteredDirs, path, listFor } = data
     const { push } = history
     const { pathname } = location
 
@@ -134,18 +143,29 @@ function setupAnnyang({
         isDirectory   : true,
         filteredFiles : filteredDirs,
         event         : ({ value, fileName }) => {
-          socket.emit('make directory', {
-            operation : 'create directory',
+          socket.emit(`make ${listFor}`, {
+            operation : `create ${listFor}`,
             dirName   : `${fileName}${value}`
           });
-          setMessage(`Making new directory '${value}'...`)
+          setMessage(`Making new ${listFor} '${value}'...`)
         }
       }))
+
       dispatch(setQueryResults(filteredDirs))
     } else {
       setMessage(`I couldn't find any directories with this name: ${path}.`)
       setFiles([])
     }
+  })
+
+  socket.on('create directory status', ({ exceptions, dirName }) => {
+    if (!exceptions) {
+      setMessage(`Created new directory at ${dirName}.`)
+    } else {
+      setMessage(`Error occured: ${exceptions}`)
+    }
+
+    setFiles([])
   })
 
   annyang.addCommands(commands)
@@ -154,6 +174,7 @@ function setupAnnyang({
 function App() {
   const [ files, setFiles ] = useState([])
   const [ message, setMessage ] = useState('Ask something to Rudra...')
+
   const dispatch = useDispatch()
   const location = useLocation()
   const history = useHistory()
