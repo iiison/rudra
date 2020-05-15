@@ -6,7 +6,40 @@
   padding: 5px;
   color: inherit;
   font-size: 12px;
-  width: 100px;
+  width: 100%;
   margin-left: 5px;
   padding-left: 0;
+}
+
+.input:disabled{
+  background: transparent;
+  border-bottom: none;
+  padding: 0;
+  font-size: 1em;
+  margin-left: 0px;
+}
+
+.input-wrapper{
+  overflow: hidden;
+  width: 120px;
+  position: relative;
+}
+
+.input-button{
+  cursor: pointer;
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  transform: translateX(100%);
+  border: none;
+  outline: none;
+  text-transform: uppercase;
+  color: #292c34;
+  font-size: 12px;
+  transition: all .5s ease-in-out;
+}
+
+.input-button.visible{
+  transform: translateX(0);
 }

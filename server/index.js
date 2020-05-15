@@ -36,17 +36,24 @@ ioServer.on('connection', client => {
   client.on('openFile', async data => {
     const filteredFiles = await findFile(projPath, data.file)
 
-    console.log('*****************************')
-    console.log('openFile', filteredFiles)
-    console.log('*****************************')
-
     ioServer.emit('openFile', { filteredFiles, file : data.file })
   });
 
-  client.on('make directory', async data => {
-    const filteredDirs = await findDirectory(projPath, data.path)
+  client.on('make directory', async ({ path, operation, dirName }) => {
+    if (operation === 'list directory') {
+      const filteredDirs = await findDirectory(projPath, path)
 
-    ioServer.emit('make directory', { filteredDirs, file : data.path })
+      ioServer.emit('make directory', { filteredDirs, file : path })
+    } else if (operation === 'create directory') {
+      console.log('*****************************')
+      console.log(fs.existsSync(dirName))
+      console.log('*****************************')
+
+      if (!fs.existsSync(dirName)){
+        const dirPath = dirName
+        fs.mkdirSync(dirPath);
+      }
+    }
   })
 
   client.on('renderFile', data => {

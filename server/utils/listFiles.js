@@ -38,7 +38,7 @@ async function getAllDirs(dir, configs = {}, dirs = []) {
     }
   }));
 
-  return dirs.map(dirPath => dirPath.toLowerCase())
+  return dirs.map(dirPath => `${dirPath}/`)
 }
 
 async function findFile(directory, fileName) {

@@ -23,6 +23,7 @@ function renderFile({ index, file, push }) {
 function formatFileNames({ 
   push,
   file,
+  event,
   pathname,
   filteredFiles, 
   setSelectedFile,
@@ -52,7 +53,7 @@ function formatFileNames({
     return (
       <p onClick={handleClick} className='file-item'>
         {iconElement} <span className='file-name'>{fileName}</span>
-        {isDirectory && <Input placeholder='Directory Name' />}
+        {isDirectory && <Input placeholder='Directory Name' returnData={{fileName}} event={event} />}
       </p>
     )
   })
@@ -73,10 +74,6 @@ function setupAnnyang({
     },
 
     'search for file *file' : (file) => {
-      // if (location.pathname !== '/'){
-      //   history.go('/');
-      // }
-
       annyang.trigger('go home')
       setMessage(`open ${file}`)
 
@@ -96,13 +93,9 @@ function setupAnnyang({
     },
 
     'make new directory at *path' : (path) => {
-      console.log('*****************************')
-      console.log(path)
-      console.log('*****************************')
-
       socket.emit('make directory', {
         path      : `${path.replace(/\s/g, '')}`.toLowerCase(),
-        operation : 'make directory'
+        operation : 'list directory'
       })
     }
   }
@@ -139,7 +132,14 @@ function setupAnnyang({
         setSelectedFile,
         file          : path,
         isDirectory   : true,
-        filteredFiles : filteredDirs
+        filteredFiles : filteredDirs,
+        event         : ({ value, fileName }) => {
+          socket.emit('make directory', {
+            operation : 'create directory',
+            dirName   : `${fileName}${value}`
+          });
+          setMessage(`Making new directory '${value}'...`)
+        }
       }))
       dispatch(setQueryResults(filteredDirs))
     } else {
@@ -182,12 +182,4 @@ function App() {
 }
 
 export default App;
-
-/*
- <pre className='line-numbers'>
-  <code className='language-js'>
-    {renderedContent}
-  </code>
-</pre>
-*/
 
