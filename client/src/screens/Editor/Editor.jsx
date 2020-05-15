@@ -23,7 +23,7 @@ function setupPage({
   selectedFilePath
 }){
   const commands = {
-    'add variable at :line with name *name' : (line, name) => {
+    'add variable at line number :line with name *name' : (line, name) => {
       socket.emit('addNewItem', {
         line,
         name,

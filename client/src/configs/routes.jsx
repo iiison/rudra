@@ -6,6 +6,7 @@ import { Route, Switch } from 'react-router-dom'
 
 import Home from '../screens/home/Home'
 import Editor from '../screens/Editor/Editor'
+import Wrapper from '../Wrapper'
 
 // import {
 //   Home,
@@ -15,10 +16,12 @@ import Editor from '../screens/Editor/Editor'
 const routes = () => (
   <div className='app grid'>
     <div className='col'>
-      <Switch>
-        <Route exact={true} path='/' component={Home} />
-        <Route path='/explore/:query/:index' component={Editor} />
-      </Switch>
+      <Wrapper>
+        <Switch>
+          <Route exact={true} path='/' component={Home} />
+          <Route path='/explore/:query/:index' component={Editor} />
+        </Switch>
+      </Wrapper>
     </div>
   </div>
 )
