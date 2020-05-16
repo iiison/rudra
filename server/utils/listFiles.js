@@ -20,7 +20,7 @@ async function getAllFiles(dir, configs = {}) {
 
   return files
     .reduce((all, folderContents) => folderContents ? all.concat(folderContents) : all, [])
-    .map(addr => addr.toLowerCase());
+    // .map(addr => addr.toLowerCase());
 }
 
 async function getAllDirs(dir, configs = {}, dirs = []) {
@@ -54,14 +54,6 @@ function filterNames(fullSet, patterns) {
 
 async function findFile(directory, fileName) {
   const files = await getAllFiles(directory)
-  // const fzFiltered = fuzzy.filter(fileName, files)
-
-  // const filtered = fileName
-  //   .map(
-  //     (file) => files.filter(filePath => (filePath && filePath.includes(file)))
-  //   ).flat()
-
-  // const filteredUniq = [...new Set(filtered)]
   const filteredUniq = filterNames(files, fileName)
 
   return filteredUniq
@@ -69,10 +61,6 @@ async function findFile(directory, fileName) {
 
 
 async function findDirectory(directory, dirName) {
-  console.log('*****************************')
-  console.log(directory, dirName)
-  console.log('*****************************')
-
   const dirs = await getAllDirs(directory)
   const filtered = filterNames(dirs, dirName)
 

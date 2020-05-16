@@ -110,6 +110,39 @@ ioServer.on('connection', client => {
     }
   })
 
+  client.on('import operation', async ({ operation, name, file }) => {
+    const formattedName = name.split(' ')
+
+    if (operation === 'library import') {
+      const packageLocation = path.join(projPath, 'package.json')
+      const { dependencies, devDependencies } = JSON.parse(fs.readFileSync(packageLocation, 'utf8'))
+      const dependenciesList = [...Object.keys(dependencies), ...Object.keys(devDependencies)]
+      const filteredList = [...new Set(dependenciesList.map(
+        dependency => formattedName.includes(dependency) && dependency
+      ).filter(Boolean))]
+
+      if (filteredList.length === 1) {
+        const importContent = `import {} from '${filteredList[0]}'\r`
+        const fileContent = fs.readFileSync(file, 'utf8')
+        const fileContentByLine = fileContent.split(/\r?\n/)
+
+        const newContent = [importContent, ...fileContentByLine]
+
+        ioServer.emit('addNewVariable', {
+          name,
+          file,
+          fileContent : newContent.join('\n')
+        })
+      }
+
+      // if (!fs.existsSync(packageLocation)){
+      // }
+      // const libNameContentMap = {
+      //   react
+      // }
+    }
+  })
+
   client.on('renderFile', data => {
     const fileContent = fs.readFileSync(data.fileName, 'utf8')
 

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useHistory }    from 'react-router-dom'
 import annyang                        from 'annyang'
 
@@ -11,7 +11,7 @@ function SetupAnnyang({ history, location }) {
       }
     },
 
-    'search for files *file' : (file) => {
+    'show context' : () => {
       if (location.pathname !== '/'){
         history.go('/');
       }
@@ -31,12 +31,28 @@ function SetupAnnyang({ history, location }) {
 function Wrapper({ children }) {
   const location = useLocation()
   const history = useHistory()
+  const [showContext, toggleContext] = useState(true)
+  const [contextContent, setContext] = useState({
+    heading: 'What is your problem?',
+    listItems : ['itme 1', 'itme 2', 'itme 3', 'itme 4']
+  })
 
   useEffect(() => SetupAnnyang({ history, location }), [location])
 
   return (
     <div>
       {children}
+      {
+        showContext && (
+          <div className='context-menu'>
+            <h2 className='context-title'>{contextContent.heading}</h2>
+            <ul className='context-options'>
+              {contextContent.listItems.map(item => <li key={item}>{item}</li>)}
+              <li><input type='text' className='context-input' placeholder='Item 1' /></li>
+            </ul>
+          </div>
+        )
+      }
     </div>
   )
 }

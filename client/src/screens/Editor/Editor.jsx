@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Prism                          from 'prismjs'
 import { useSelector }                from 'react-redux';
 import { useParams }                  from 'react-router-dom'
-import annyang                     from 'annyang'
+import annyang                        from 'annyang'
 
 import { socket } from '../../index'
 
@@ -19,9 +19,11 @@ import '@fortawesome/fontawesome-free/css/all.min.css'
 import '@fortawesome/fontawesome-free/css/solid.min.css'
 
 function setupPage({
-  setRenderedContent,
-  selectedFilePath
+  selectedFilePath,
+  setCursorPosition,
+  setRenderedContent
 }){
+  window.Ace = AceEditor
   const commands = {
     'add variable at line number :line with name *name' : (line, name) => {
       socket.emit('addNewItem', {
@@ -30,11 +32,28 @@ function setupPage({
         type : 'variable',
         file : selectedFilePath
       })
+    },
+
+    'import library :libraryName' : (libraryName) => {
+      socket.emit('import operation', {
+        name      : libraryName,
+        file      : selectedFilePath,
+        operation : 'library import'
+      })
+    },
+    
+    'import file :fileName' : (fileName) => {
+      socket.emit('import operation', {
+        name      : fileName,
+        file      : selectedFilePath,
+        operation : 'file import'
+      })
     }
   }
 
   socket.on('renderFile', (data = {}) => {
-    const { fileContent } = data
+    const { fileContent, cursorPosition = 1 } = data
+    setCursorPosition(cursorPosition)
 
     setRenderedContent(fileContent)
 
@@ -57,16 +76,17 @@ function setupPage({
 }
 
 export default function Editor() {
-  window.pr = Prism
   const [ renderedContent, setRenderedContent ] = useState('')
+  const [ cursorPosition, setCursorPosition ] = useState(1)
   const { files } = useSelector(state => state.home)
   const { index } = useParams()
 
   const selectedFilePath = files[index]
 
   useEffect(() => setupPage({
-    setRenderedContent,
-    selectedFilePath
+    selectedFilePath,
+    setCursorPosition,
+    setRenderedContent
   }), [])
 
   useEffect(() => socket.emit('renderFile', {
@@ -88,12 +108,13 @@ export default function Editor() {
             <AceEditor
               tabSize={2}
               width='auto'
-              height='calc(100vh - 62px)'
               fontSize={14}
               theme='monokai'
               mode='javascript'
               name={selectedFilePath}
               value={renderedContent}
+              height='calc(100vh - 62px)'
+              cursorStart={cursorPosition}
               enableLiveAutocompletion={true}
               editorProps={{ $blockScrolling: true }}
               onChange={code => setRenderedContent(code)}

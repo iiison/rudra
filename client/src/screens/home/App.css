@@ -94,3 +94,52 @@
 .file-name{
   margin: 0 5px;
 }
+
+.context-menu{
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 250px;
+  z-index: 9999;
+  background: #1f212b;
+  border: 1px solid #1B1E29;
+  border-bottom: none;
+  color: #929292;
+}
+
+.context-title {
+  margin: 0;
+  padding: 10px;
+  font-size: 16px;
+  font-weight:400;
+  border-bottom: 1px solid #33334a;
+}
+
+.context-options{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.context-options li{
+  padding: 5px 10px;
+  cursor: pointer;
+  background: transparent;
+  transition: all .5s ease-in-out;
+}
+
+.context-options li:hover{
+  background: #fff;
+  color: #1f212c;
+}
+
+.context-input{
+  width: 100%;
+  margin-bottom: 7px;
+  padding: 5px;
+  box-sizing: border-box;
+  outline: none;
+  border: 1px solid #33334a;
+  margin-top: 10px;
+}
+
