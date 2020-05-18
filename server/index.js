@@ -1,9 +1,10 @@
-const fs               = require('fs');
-const path             = require('path');
-const express          = require('express');
-const bodyParser       = require('body-parser');
-const { createServer } = require('http');
-const io               = require('socket.io');
+const fs                   = require('fs');
+const path                 = require('path');
+const express              = require('express');
+const bodyParser           = require('body-parser');
+const { createServer }     = require('http');
+const io                   = require('socket.io');
+const { formatInputQuery } = require('./utils/utils');
 const {
   findFile,
   findDirectory
@@ -110,15 +111,31 @@ ioServer.on('connection', client => {
     }
   })
 
-  client.on('import operation', async ({ operation, name, file }) => {
-    const formattedName = name.split(' ')
+  client.on('import operation', async (data) => {
+    const { operation, name, file } = data
+    const formattedNames = formatInputQuery(name)
+    let operationOn = ''
+
+    console.log('*****************************')
+    console.log(formattedNames)
+    console.log('*****************************')
 
     if (operation === 'library import') {
+      operationOn = 'file'
+
       const packageLocation = path.join(projPath, 'package.json')
       const { dependencies, devDependencies } = JSON.parse(fs.readFileSync(packageLocation, 'utf8'))
       const dependenciesList = [...Object.keys(dependencies), ...Object.keys(devDependencies)]
       const filteredList = [...new Set(dependenciesList.map(
-        dependency => formattedName.includes(dependency) && dependency
+        dependency => {
+          for (const i in formattedNames) {
+            const name = formattedNames[i].toLowerCase()
+
+            if (dependency.toLowerCase().includes(name)) {
+              return dependency
+            }
+          }
+        }
       ).filter(Boolean))]
 
       if (filteredList.length === 1) {
@@ -133,6 +150,17 @@ ioServer.on('connection', client => {
           file,
           fileContent : newContent.join('\n')
         })
+      } else {
+        console.log('*****************************')
+        console.log(filteredList)
+        console.log('*****************************')
+
+        ioServer.emit('import operation', {
+          operationOn,
+          query       : data,
+          suggestions : filteredList,
+          operation   : 'show suggestions'
+        })
       }
 
       // if (!fs.existsSync(packageLocation)){
@@ -140,6 +168,22 @@ ioServer.on('connection', client => {
       // const libNameContentMap = {
       //   react
       // }
+    } else if (operation === 'file import confirmation') {
+
+      console.log('*****************************')
+      console.log('Shit\'s not working?')
+      console.log('*****************************')
+      const importContent = `import {} from '${data.imortItem}'\r`
+      const fileContent = fs.readFileSync(file, 'utf8')
+      const fileContentByLine = fileContent.split(/\r?\n/)
+
+      const newContent = [importContent, ...fileContentByLine]
+
+      ioServer.emit('addNewVariable', {
+        name,
+        file,
+        fileContent : newContent.join('\n')
+      })
     }
   })
 

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector }   from 'react-redux';
 import Prism                          from 'prismjs'
-import { useSelector }                from 'react-redux';
 import { useParams }                  from 'react-router-dom'
 import annyang                        from 'annyang'
 
 import { socket } from '../../index'
+import { setNotificationContent } from '../../redux/modules/wrapper/wrapper'
 
 // react-ace deps
 import AceEditor from 'react-ace';
@@ -19,6 +20,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css'
 import '@fortawesome/fontawesome-free/css/solid.min.css'
 
 function setupPage({
+  dispatch,
   selectedFilePath,
   setCursorPosition,
   setRenderedContent
@@ -34,7 +36,7 @@ function setupPage({
       })
     },
 
-    'import library :libraryName' : (libraryName) => {
+    'import library *libraryName' : (libraryName) => {
       socket.emit('import operation', {
         name      : libraryName,
         file      : selectedFilePath,
@@ -42,7 +44,7 @@ function setupPage({
       })
     },
     
-    'import file :fileName' : (fileName) => {
+    'import file from *fileName' : (fileName) => {
       socket.emit('import operation', {
         name      : fileName,
         file      : selectedFilePath,
@@ -72,6 +74,28 @@ function setupPage({
     setRenderedContent(fileContent)
   })
 
+  socket.on('import operation', (data = {}) => {
+    const { operation, suggestions, query, operationOn } = data
+
+    if (operation && operation === 'show suggestions') {
+      dispatch(setNotificationContent({
+        title   : 'What is your prob?',
+        options : suggestions,
+        event   : ({ active, options }) => {
+          socket.emit('import operation', {
+            ...query,
+            operation : `${operationOn} import confirmation`,
+            imortItem : active
+          })
+
+          console.log('*****************************')
+          console.log(active, options)
+          console.log('*****************************')
+        }
+      }))
+    }
+  })
+
   annyang.addCommands(commands)
 }
 
@@ -80,10 +104,12 @@ export default function Editor() {
   const [ cursorPosition, setCursorPosition ] = useState(1)
   const { files } = useSelector(state => state.home)
   const { index } = useParams()
+  const dispatch = useDispatch()
 
   const selectedFilePath = files[index]
 
   useEffect(() => setupPage({
+    dispatch,
     selectedFilePath,
     setCursorPosition,
     setRenderedContent
