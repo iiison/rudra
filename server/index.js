@@ -45,6 +45,10 @@ ioServer.on('connection', client => {
   });
 
   client.on('make directory', async ({ path, operation, dirName }) => {
+    console.log('*****************************')
+    console.log(operation)
+    console.log('*****************************')
+
     if (operation === 'list directory') {
       const filteredDirs = await findDirectory(projPath, path)
 

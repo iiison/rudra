@@ -18,12 +18,6 @@ function SetupAnnyang({ history, location }) {
       if (location.pathname !== '/'){
         history.go('/');
       }
-    },
-
-    'make new directory at *path' : (path) => {
-      console.log('*****************************')
-      console.log(path)
-      console.log('*****************************')
     }
   }
 
