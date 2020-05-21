@@ -41,6 +41,20 @@ app.use(express.static(path.join(__dirname, 'artefacts')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'artefacts', 'index.html')));
 app.get('*', (req, res) => res.redirect('/'));
 
+function addFileImportCode(importCode, data) {
+  const { file, name } = data
+  const fileContent = readFile(file)
+  const fileContentByLine = fileContent.split(/\r?\n/)
+
+  const newContent = [importCode, ...fileContentByLine]
+
+  ioServer.emit('addNewVariable', {
+    name,
+    file,
+    fileContent : newContent.join('\n')
+  })
+}
+
 function handleLibraryImport({
   data,
   operationOn,
@@ -57,16 +71,8 @@ function handleLibraryImport({
 
   if (filteredList.length === 1) {
     const importContent = `import {} from '${filteredList[0]}'\r`
-    const fileContent = readFile(file)
-    const fileContentByLine = fileContent.split(/\r?\n/)
 
-    const newContent = [importContent, ...fileContentByLine]
-
-    ioServer.emit('addNewVariable', {
-      name,
-      file,
-      fileContent : newContent.join('\n')
-    })
+    addFileImportCode(importContent, data)
   } else {
     ioServer.emit('import operation', {
       operationOn,
@@ -80,20 +86,22 @@ function handleLibraryImport({
 async function handleFileImport({
   data,
   operationOn,
-  formattedNames
+  formattedNames,
+  filteredList : defaultFilteredList
 }) {
   const { name, file } = data
   const fileDirName = path.dirname(file)
-  const filteredList = await findFile(projPath, formattedNames)
+  const filteredList = defaultFilteredList || await findFile(projPath, formattedNames)
+
+  console.log('*******************')
+  console.log(filteredList)
+  console.log(defaultFilteredList)
+  console.log('*******************')
 
   if (filteredList.length === 1) {
     const relativePath = path.relative(fileDirName, filteredList[0]);
     const { dir, name, ext } = path.parse(relativePath)
     let importRightPart = ''
-
-    console.log('*******************')
-    console.log(ext)
-    console.log('*******************')
 
     if (ext === '.js') {
       importRightPart = `${dir}/${name}`
@@ -102,15 +110,13 @@ async function handleFileImport({
     }
 
     const importContent = `import {} from '${importRightPart}'`
-    const fileContent = readFile(file)
-    const fileContentByLine = fileContent.split(/\r?\n/)
-
-    const newContent = [importContent, ...fileContentByLine]
-
-    ioServer.emit('addNewVariable', {
-      name,
-      file,
-      fileContent : newContent.join('\n')
+    addFileImportCode(importContent, data)
+  } else {
+    ioServer.emit('import operation', {
+      operationOn,
+      query       : data,
+      suggestions : filteredList,
+      operation   : 'show suggestions'
     })
   }
 }
@@ -230,6 +236,13 @@ ioServer.on('connection', client => {
         name,
         file,
         fileContent : newContent.join('\n')
+      })
+    } else if (operation === 'file import confirmation') {
+      handleFileImport({
+        data,
+        operationOn,
+        formattedNames,
+        filteredList : [data.imortItem]
       })
     }
   })
