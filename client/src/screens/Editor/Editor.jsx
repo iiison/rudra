@@ -43,6 +43,14 @@ function setupPage({
         operation : 'library import'
       })
     },
+
+    'import file *fileName' : (fileName) => {
+      socket.emit('import operation', {
+        name      : fileName,
+        file      : selectedFilePath,
+        operation : 'file import'
+      })
+    },
     
     'import file from *fileName' : (fileName) => {
       socket.emit('import operation', {
