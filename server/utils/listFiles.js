@@ -1,42 +1,47 @@
-const fs    = require('fs').promises;
+const fs    = require('fs').promises
 const fuzzy = require('fuzzy')
-const path  = require('path');
+const path  = require('path')
+
+const { stripCommonPartsFromPaths } = require('./utils')
 
 const defaultConfigs = {
   excluded : ['node_modules', 'build', '.git']
 }
 
 async function getAllFiles(dir, configs = {}) {
-  let files = await fs.readdir(dir);
-  const { excluded = defaultConfigs.excluded } = configs
+  let files = await fs.readdir(dir)
+  const { excluded = [] } = configs
+  const mergedExcluded = [...defaultConfigs.excluded, ...excluded]
+
 
   files = await Promise.all(files.map(async file => {
-    const filePath = path.join(dir, file);
-    const stats = await fs.stat(filePath);
+    const filePath = path.join(dir, file)
+    const stats = await fs.stat(filePath)
 
-    if (stats.isDirectory() && !excluded.includes(file)) return getAllFiles(filePath);
-    else if(stats.isFile()) return filePath;
-  }));
+    if (stats.isDirectory() && !mergedExcluded.includes(file)) return getAllFiles(filePath)
+    else if(stats.isFile()) return filePath
+  }))
 
   return files
     .reduce((all, folderContents) => folderContents ? all.concat(folderContents) : all, [])
-    .map(addr => addr.toLowerCase());
+    // .map(addr => addr.toLowerCase())
 }
 
 async function getAllDirs(dir, configs = {}, dirs = []) {
-  let files = await fs.readdir(dir);
-  const { excluded = defaultConfigs.excluded } = configs
+  let files = await fs.readdir(dir)
+  const { excluded = [] } = configs
+  const mergedExcluded = [...defaultConfigs.excluded, ...excluded]
 
   files = await Promise.all(files.map(async file => {
-    const filePath = path.join(dir, file);
-    const stats = await fs.stat(filePath);
+    const filePath = path.join(dir, file)
+    const stats = await fs.stat(filePath)
 
-    if (stats.isDirectory() && !excluded.includes(file)){
+    if (stats.isDirectory() && !mergedExcluded.includes(file)){
       dirs.push(filePath)
 
-      return getAllDirs(filePath, {}, dirs);
+      return getAllDirs(filePath, {}, dirs)
     }
-  }));
+  }))
 
   return dirs.map(dirPath => `${dirPath}/`)
 }
@@ -53,15 +58,7 @@ function filterNames(fullSet, patterns) {
 }
 
 async function findFile(directory, fileName) {
-  const files = await getAllFiles(directory)
-  // const fzFiltered = fuzzy.filter(fileName, files)
-
-  // const filtered = fileName
-  //   .map(
-  //     (file) => files.filter(filePath => (filePath && filePath.includes(file)))
-  //   ).flat()
-
-  // const filteredUniq = [...new Set(filtered)]
+  const files = stripCommonPartsFromPaths(await getAllFiles(directory), directory)
   const filteredUniq = filterNames(files, fileName)
 
   return filteredUniq
@@ -69,14 +66,10 @@ async function findFile(directory, fileName) {
 
 
 async function findDirectory(directory, dirName) {
-  console.log('*****************************')
-  console.log(directory, dirName)
-  console.log('*****************************')
-
-  const dirs = await getAllDirs(directory)
+  const dirs = stripCommonPartsFromPaths(await getAllDirs(directory), directory)
   const filtered = filterNames(dirs, dirName)
 
-  return filtered;
+  return filtered
 }
 
 module.exports = {

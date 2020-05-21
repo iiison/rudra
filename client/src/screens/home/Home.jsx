@@ -15,7 +15,6 @@ import monk from './images/monk.png'
 import './App.css';
 
 // const socket = io();
-
 function renderFile({ index, file, push }) {
   push(`/explore/${file}/${index}`)
 }

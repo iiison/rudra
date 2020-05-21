@@ -6,7 +6,7 @@
   padding: 5px;
   color: inherit;
   font-size: 12px;
-  width: 100%;
+  width: 98%;
   margin-left: 5px;
   padding-left: 0;
 }
@@ -21,7 +21,7 @@
 
 .input-wrapper{
   overflow: hidden;
-  width: 120px;
+  min-width: 120px;
   position: relative;
 }
 
@@ -31,7 +31,7 @@
   right: 0;
   top: 0;
   height: 100%;
-  transform: translateX(100%);
+  transform: translateX(110%);
   border: none;
   outline: none;
   text-transform: uppercase;
