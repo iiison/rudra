@@ -1,4 +1,5 @@
 const fs    = require('fs').promises
+const FuzzySet = require('fuzzyset.js')
 const fuzzy = require('fuzzy')
 const path  = require('path')
 
@@ -47,14 +48,20 @@ async function getAllDirs(dir, configs = {}, dirs = []) {
 }
 
 function filterNames(fullSet, patterns) {
-  const filtered = patterns
-    .map(
-      (pattern) => fullSet.filter(
-        entry => (entry && entry.toLowerCase().includes(pattern.toLowerCase())
-      ))
-    ).flat()
+  const matcher = FuzzySet(fullSet, false)
+  const joinedPattern = patterns.join(' ')
+  const matches = matcher.get(joinedPattern, undefined, 0.2) || []
 
-  return [...new Set(filtered)]
+  return matches.map(match => match[1])
+
+  // const filtered = patterns
+  //   .map(
+  //     (pattern) => fullSet.filter(
+  //       entry => (entry && entry.toLowerCase().includes(pattern.toLowerCase())
+  //     ))
+  //   ).flat()
+
+  // return [...new Set(filtered)]
 }
 
 async function findFile(directory, fileName) {
