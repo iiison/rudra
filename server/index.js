@@ -3,6 +3,7 @@ const path                 = require('path');
 const express              = require('express');
 const bodyParser           = require('body-parser');
 const { createServer }     = require('http');
+const https                = require('https');
 const io                   = require('socket.io');
 const {
   formatInputQuery,
@@ -20,14 +21,20 @@ const babelParser = require('@babel/parser');
 const clipboardy = require('clipboardy')
 //
 
+// Certificates
+const key = fs.readFileSync('./certs/key.pem', 'utf8')
+const cert = fs.readFileSync('./certs/cert.pem', 'utf8')
+
 const ctx = new chalk.Instance({level: 3});
 
-const app      = express();
-const server   = createServer(app)
-const ioServer = io(server)
-const port     = 9000;
-const ioPort   = 8000;
-const projPath = path.join(__dirname, '../../test')
+const app             = express();
+const server          = createServer(app)
+const httpsServer     = https.createServer({ key, cert }, app)
+const ioServer        = io(server)
+const port            = 9000;
+const httpsServerPort = 9001;
+const ioPort          = 8000;
+const projPath        = path.join(__dirname, '../../test')
 
 const {
   makeDir,
@@ -317,8 +324,15 @@ ioServer.on('connection', client => {
   });
 });
 
-const serveRef = app.listen(port, () => console.log(`Listening on ${port}!`));
+const serveRef       = app.listen(port, '0.0.0.0', () => console.log(`HTTP Listening on ${port}!`));
+const httpsServerRef = app.listen(
+  httpsServerPort,
+  '0.0.0.0',
+  () => console.log(`HTTPS is Listening on ${httpsServerPort}!`)
+);
+
 // ioServer.listen(ioPort, () => console.log(`IO is listening on ${ioPort}!`));
-ioServer.listen(serveRef);
+ioServer.attach(serveRef);
+ioServer.attach(httpsServerRef);
 
 

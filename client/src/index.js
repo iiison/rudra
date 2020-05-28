@@ -18,7 +18,7 @@ annyang.start()
 ReactDOM.render(
   <Provider store={store}>
     <BrowserRouter>
-      {routes()}
+      {routes(annyang)}
     </BrowserRouter>
   </Provider>, 
   document.getElementById('root')
