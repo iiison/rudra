@@ -5,6 +5,8 @@ const bodyParser           = require('body-parser');
 const { createServer }     = require('http');
 const https                = require('https');
 const io                   = require('socket.io');
+
+const { format } = require('./utils/fileFormatter');
 const {
   formatInputQuery,
   readFileFromProject,
@@ -34,7 +36,7 @@ const ioServer        = io(server)
 const port            = 9000;
 const httpsServerPort = 9001;
 const ioPort          = 8000;
-const projPath        = path.join(__dirname, '../../test')
+const projPath        = path.join(__dirname, '../../git-war-demo')
 
 const {
   makeDir,
@@ -54,6 +56,13 @@ function addFileImportCode(importCode, data) {
   const fileContentByLine = fileContent.split(/\r?\n/)
 
   const newContent = [importCode, ...fileContentByLine]
+
+  /*
+   * TODO:
+   * Add file import to file import bunch
+   * Lib import to lib import bunch
+   * Write that shit to the respective file
+  */
 
   ioServer.emit('addNewVariable', {
     name,
@@ -264,49 +273,53 @@ ioServer.on('connection', client => {
     const {
       line,
       type,
-      name,
       file
     } = data
-    const parsedLine = parseInt(line) - 1
-
+    const normalizedLineNumber = parseInt(line, 10) - 1
     const fileContent = readFile(file)
     const fileContentByLine = fileContent.split(/\r?\n/)
-    // const firstPart = fileContentByLine.slice(0, parsedLine)
-    // const lastPart = fileContentByLine.slice(parsedLine)
-    // const newPart = `const ${name} = 23`
 
-    const todoColor = ctx.rgb(238, 158, 47);
-    const todoColorBold = ctx.rgb(238, 158, 47);
+    const firstPart = fileContentByLine.slice(0, normalizedLineNumber)
+    const lastPart = fileContentByLine.slice(normalizedLineNumber)
+    const newPart = `const _temp_var = ''`
+    const newContent = [...firstPart, newPart, ...lastPart].join('\n')
 
-    console.log(todoColor('---------------------------------------------'));
-    console.log(todoColorBold('Todos:'));
-    console.log(todoColor('- Convert to AST'));
-    console.log(todoColor('- Categorize by type'));
-    console.log(todoColor('- Add variable at (line)'));
-    console.log(todoColor('- Validate the code'));
-    console.log(todoColor('- Fix the fixable'));
-    console.log(todoColor('- Send not fixable errors to develper'));
-    console.log(todoColor('------------------------------------------'));
+    makeFile(file, newContent)
+    format({ file : path.join(projPath, file) })
 
-    const fileAst = babelParser.parse(fileContent, {
-      sourceType : 'module',
-      errorRecovery : true,
-      plugins : ['babel-eslint', 'jsx']
-    });
+    // const todoColor = ctx.rgb(238, 158, 47);
+    // const todoColorBold = ctx.rgb(238, 158, 47);
 
-    clipboardy.writeSync(JSON.stringify(fileAst.program.body))
-    console.log(ctx.magentaBright('+++++++++++++++++++++++++++++++'))
-    console.log('Copied the AST to clipboard.')
-    // console.log(babelParser.parse(fileContent, {
+    // console.log(todoColor('---------------------------------------------'));
+    // console.log(todoColorBold('Todos:'));
+    // console.log(todoColor('- Convert to AST'));
+    // console.log(todoColor('- Categorize by type'));
+    // console.log(todoColor('- Add variable at (line)'));
+    // console.log(todoColor('- Validate the code'));
+    // console.log(todoColor('- Fix the fixable'));
+    // console.log(todoColor('- Send not fixable errors to develper'));
+    // console.log(todoColor('------------------------------------------'));
+
+    // const fileAst = babelParser.parse(fileContent, {
     //   sourceType : 'module',
     //   errorRecovery : true,
-    //   plugins : ['babel-eslint',]
-    // }))
-    console.log(ctx.magentaBright('+++++++++++++++++++++++++++++++'))
+    //   plugins : ['babel-eslint', 'jsx']
+    // });
+
+    // clipboardy.writeSync(JSON.stringify(fileAst.program.body))
+    
+    // console.log(ctx.magentaBright('+++++++++++++++++++++++++++++++'))
+    // console.log('Copied the AST to clipboard.')
+    // // console.log(babelParser.parse(fileContent, {
+    // //   sourceType : 'module',
+    // //   errorRecovery : true,
+    // //   plugins : ['babel-eslint',]
+    // // }))
+    // console.log(ctx.magentaBright('+++++++++++++++++++++++++++++++'))
 
     // console.log('-----------------------------')
-    // console.log(parsedLine)
-    // console.log(fileContentByLine[parsedLine])
+    // console.log(normalizedLineNumber)
+    // console.log(fileContentByLine[normalizedLineNumber])
     // console.log('-----------------------------')
 
     // ioServer.emit('addNewVariable', {

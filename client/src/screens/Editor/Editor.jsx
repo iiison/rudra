@@ -5,7 +5,8 @@ import { useParams }                  from 'react-router-dom'
 import annyang                        from 'annyang'
 
 import { socket } from '../../index'
-import { setNotificationContent } from '../../redux/modules/wrapper/wrapper'
+
+import { setNotificationContent, toggleContext } from '../../redux/modules/wrapper/wrapper'
 
 // react-ace deps
 import AceEditor from 'react-ace';
@@ -27,7 +28,7 @@ function setupPage({
 }){
   window.Ace = AceEditor
   const commands = {
-    'add variable at line number :line with name *name' : (line, name) => {
+    'add variable at line number :line' : (line, name) => {
       socket.emit('addNewItem', {
         line,
         name,
@@ -83,24 +84,34 @@ function setupPage({
   })
 
   socket.on('import operation', (data = {}) => {
-    const { operation, suggestions, query, operationOn } = data
+    const {
+      operation,
+      query,
+      operationOn,
+      suggestions : options
+    } = data
 
     if (operation && operation === 'show suggestions') {
+      const title = options.length
+        ? 'Choose one:'
+        : `Not found.`
+
+      console.log('*******************')
+      console.log(options)
+      console.log('*******************')
+
       dispatch(setNotificationContent({
-        title   : 'What is your prob?',
-        options : suggestions,
+        title,
+        options,
         event   : ({ active, options }) => {
           socket.emit('import operation', {
             ...query,
-            operation : `${operationOn} import confirmation`,
-            imortItem : active
+            imortItem : active,
+            operation : `${operationOn} import confirmation`
           })
-
-          console.log('*****************************')
-          console.log(active, options)
-          console.log('*****************************')
         }
       }))
+      dispatch(toggleContext())
     }
   })
 

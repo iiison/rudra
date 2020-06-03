@@ -11,16 +11,13 @@ const Base = {
     SharedArrayBuffer: "readonly"
   },
   parserOptions: {
-    ecmaFeatures: {
-      jsx: true
-    },
-    ecmaVersion: 2018,
+    ecmaVersion: 2019,
     sourceType: "module",
     impliedStrict: true
   },
-  plugins: ["react", "react-hooks"],
+  plugins: ["react"],
   settings: {
-    "import/resolver": "webpack",
+    // "import/resolver": "webpack",
     pragma: "React",
     react: {
       createClass: "createReactClass",
@@ -269,7 +266,10 @@ const baseRules = {
   ////////////////////
   "jsx-a11y/interactive-supports-focus" : 0,
   "jsx-a11y/click-events-have-key-events" : 0,
-  "jsx-a11y/no-noninteractive-element-interactions" : 0
+  "jsx-a11y/no-noninteractive-element-interactions" : 0,
+
+  // Temp Rule
+  "import/no-unresolved" : 0
 };
 
 

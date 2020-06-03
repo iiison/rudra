@@ -1,4 +1,5 @@
 const fs = require('fs');
+// const { format } = require('./fileFormatter')
 
 function formatInputQuery(input) {
   const inputArray = input.split(' ')
