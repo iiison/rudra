@@ -256,6 +256,7 @@ const baseRules = {
 	"react/jsx-indent-props": [2, 2],
 	"react/prop-types": [2, { ignore: ['children'] }],
 	"react/sort-comp": 0,
+  "react/jsx-props-no-spreading": 0,
 	"import/prefer-default-export" : 0,
   "react/prefer-stateless-function" : 0,
   "react-hooks/rules-of-hooks": 2,

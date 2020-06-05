@@ -37,6 +37,15 @@ function setupPage({
       })
     },
 
+    'add function at line number :line' : (line, name) => {
+      socket.emit('addNewItem', {
+        line,
+        name,
+        type : 'function',
+        file : selectedFilePath
+      })
+    },
+
     'import library *libraryName' : (libraryName) => {
       socket.emit('import operation', {
         name      : libraryName,
@@ -64,20 +73,12 @@ function setupPage({
 
   socket.on('renderFile', (data = {}) => {
     const { fileContent, cursorPosition = 1 } = data
+
     setCursorPosition(cursorPosition)
-
     setRenderedContent(fileContent)
-
-    // if (filteredFiles && filteredFiles.length) {
-    //   setMessage(`I found ${filteredFiles.length} files:`)
-    //   setFiles(formatFileNames({ filteredFiles, setSelectedFile }))
-    // } else {
-    //   setMessage(`I couldn't find any file with this name: ${file}.`)
-    //   setFiles([])
-    // }
   })
 
-  socket.on('addNewVariable', (data = {}) => {
+  socket.on('add new content', (data = {}) => {
     const { fileContent } = data
 
     setRenderedContent(fileContent)

@@ -1,25 +1,31 @@
-const fs                   = require('fs');
-const path                 = require('path');
-const express              = require('express');
-const bodyParser           = require('body-parser');
-const { createServer }     = require('http');
-const https                = require('https');
-const io                   = require('socket.io');
+const fs               = require('fs')
+const path             = require('path')
+const express          = require('express')
+const { createServer } = require('http')
+const https            = require('https')
+const io               = require('socket.io')
 
-const { format } = require('./utils/fileFormatter');
+const { format }        = require('./utils/fileFormatter')
+const { getNewContent } = require('./utils/getNewContent')
 const {
   formatInputQuery,
   readFileFromProject,
- findSimilaritiesInLists
-} = require('./utils/utils');
+  findSimilaritiesInLists
+} = require('./utils/utils')
 const {
   findFile,
   findDirectory
 } = require('./utils/listFiles')
 
+const {
+  setProjectPath
+} = require('./configs/variablesSetter')
+
+setProjectPath('../../git-war-demo')
+
 // Add experimental imports here
-const chalk = require('chalk');
-const babelParser = require('@babel/parser');
+const chalk = require('chalk')
+const babelParser = require('@babel/parser')
 const clipboardy = require('clipboardy')
 //
 
@@ -27,16 +33,15 @@ const clipboardy = require('clipboardy')
 const key = fs.readFileSync('./certs/key.pem', 'utf8')
 const cert = fs.readFileSync('./certs/cert.pem', 'utf8')
 
-const ctx = new chalk.Instance({level: 3});
-
-const app             = express();
+const app             = express()
 const server          = createServer(app)
 const httpsServer     = https.createServer({ key, cert }, app)
 const ioServer        = io(server)
-const port            = 9000;
-const httpsServerPort = 9001;
-const ioPort          = 8000;
-const projPath        = path.join(__dirname, '../../git-war-demo')
+const port            = 9000
+const httpsServerPort = 9001
+const ioPort          = 8000
+const { projPath }    = global
+
 
 const {
   makeDir,
@@ -46,9 +51,9 @@ const {
 } = readFileFromProject(projPath, path)
 
 
-app.use(express.static(path.join(__dirname, 'artefacts')));
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'artefacts', 'index.html')));
-app.get('*', (req, res) => res.redirect('/'));
+app.use(express.static(path.join(__dirname, 'artefacts')))
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'artefacts', 'index.html')))
+app.get('*', (req, res) => res.redirect('/'))
 
 function addFileImportCode(importCode, data) {
   const { file, name } = data
@@ -64,7 +69,7 @@ function addFileImportCode(importCode, data) {
    * Write that shit to the respective file
   */
 
-  ioServer.emit('addNewVariable', {
+  ioServer.emit('add new variable', {
     name,
     file,
     fileContent : newContent.join('\n')
@@ -115,7 +120,7 @@ async function handleFileImport({
   console.log('*******************')
 
   if (filteredList.length === 1) {
-    const relativePath = path.relative(fileDirName, filteredList[0]);
+    const relativePath = path.relative(fileDirName, filteredList[0])
     const { dir, name, ext } = path.parse(relativePath)
     let importRightPart = ''
 
@@ -140,7 +145,7 @@ async function handleFileImport({
 ioServer.on('connection', client => {
   client.on('event', data => {
     console.log(data)
-  });
+  })
 
   client.on('openFile', async data => {
     console.log('*****************************')
@@ -150,7 +155,7 @@ ioServer.on('connection', client => {
     const filteredFiles = await findFile(projPath, data.file)
 
     ioServer.emit('openFile', { filteredFiles, file : data.file.join(' ') })
-  });
+  })
 
   client.on('make directory', async ({ path, operation, dirName }) => {
     if (operation === 'list directory') {
@@ -172,7 +177,7 @@ ioServer.on('connection', client => {
         const dirPath = dirName
 
         try {
-          makeDir(dirPath);
+          makeDir(dirPath)
         } catch(error) {
           exceptions = error
         }
@@ -204,7 +209,7 @@ ioServer.on('connection', client => {
         const dirPath = dirName
 
         try {
-          makeFile(dirPath, '// Add code here.');
+          makeFile(dirPath, '// Add code here.')
         } catch(error) {
           exceptions = error
         }
@@ -233,7 +238,7 @@ ioServer.on('connection', client => {
         operationOn,
         formattedNames
       })
-    } else if( operation === 'file import' ) {
+    } else if (operation === 'file import') {
       operationOn = 'file'
 
       handleFileImport({
@@ -248,7 +253,7 @@ ioServer.on('connection', client => {
 
       const newContent = [importContent, ...fileContentByLine]
 
-      ioServer.emit('addNewVariable', {
+      ioServer.emit('add new variable', {
         name,
         file,
         fileContent : newContent.join('\n')
@@ -263,89 +268,66 @@ ioServer.on('connection', client => {
     }
   })
 
-  client.on('renderFile', data => {
+  client.on('renderFile', (data) => {
     const fileContent = readFile(data.fileName)
 
     ioServer.emit('renderFile', { fileContent, ...data })
   })
 
-  client.on('addNewItem', data => {
+  client.on('addNewItem', (data) => {
     const {
       line,
       type,
       file
     } = data
+
     const normalizedLineNumber = parseInt(line, 10) - 1
-    const fileContent = readFile(file)
-    const fileContentByLine = fileContent.split(/\r?\n/)
+    const fileContent          = readFile(file)
+    const fileContentByLine    = fileContent.split(/\r?\n/)
 
-    const firstPart = fileContentByLine.slice(0, normalizedLineNumber)
-    const lastPart = fileContentByLine.slice(normalizedLineNumber)
-    const newPart = `const _temp_var = ''`
-    const newContent = [...firstPart, newPart, ...lastPart].join('\n')
+    const firstPart  = fileContentByLine.slice(0, normalizedLineNumber)
+    const lastPart   = fileContentByLine.slice(normalizedLineNumber)
+    const newPart    = getNewContent({ type })
+    const newContent = [...firstPart, ...newPart, ...lastPart].join('\n')
+    const {
+      content : formattedContent,
+      errors,
+      meta
+    } = format({ content : newContent })
 
-    makeFile(file, newContent)
-    format({ file : path.join(projPath, file) })
+    if (formattedContent) {
+      makeFile(file, formattedContent)
+      ioServer.emit('add new content', {
+        ...data,
+        fileContent : formattedContent
+      })
+    }
 
-    // const todoColor = ctx.rgb(238, 158, 47);
-    // const todoColorBold = ctx.rgb(238, 158, 47);
+    const { errorCount, warningCount } = meta
 
-    // console.log(todoColor('---------------------------------------------'));
-    // console.log(todoColorBold('Todos:'));
-    // console.log(todoColor('- Convert to AST'));
-    // console.log(todoColor('- Categorize by type'));
-    // console.log(todoColor('- Add variable at (line)'));
-    // console.log(todoColor('- Validate the code'));
-    // console.log(todoColor('- Fix the fixable'));
-    // console.log(todoColor('- Send not fixable errors to develper'));
-    // console.log(todoColor('------------------------------------------'));
-
-    // const fileAst = babelParser.parse(fileContent, {
-    //   sourceType : 'module',
-    //   errorRecovery : true,
-    //   plugins : ['babel-eslint', 'jsx']
-    // });
-
-    // clipboardy.writeSync(JSON.stringify(fileAst.program.body))
-    
-    // console.log(ctx.magentaBright('+++++++++++++++++++++++++++++++'))
-    // console.log('Copied the AST to clipboard.')
-    // // console.log(babelParser.parse(fileContent, {
-    // //   sourceType : 'module',
-    // //   errorRecovery : true,
-    // //   plugins : ['babel-eslint',]
-    // // }))
-    // console.log(ctx.magentaBright('+++++++++++++++++++++++++++++++'))
-
-    // console.log('-----------------------------')
-    // console.log(normalizedLineNumber)
-    // console.log(fileContentByLine[normalizedLineNumber])
-    // console.log('-----------------------------')
-
-    // ioServer.emit('addNewVariable', {
-    //   ...data,
-    //   fileContent : [
-    //     ...firstPart,
-    //     newPart,
-    //     ...lastPart
-    //   ].join('\n')
-    // })
+    if (errorCount || warningCount) {
+      ioServer.emit('show context', {
+        type : 'lint errors',
+        data : {
+          meta,
+          errors
+        }
+      })
+    }
   })
 
-  client.on('disconnect', client => {
+  client.on('disconnect', () => {
     console.log('Connection closed!')
-  });
-});
+  })
+})
 
-const serveRef       = app.listen(port, '0.0.0.0', () => console.log(`HTTP Listening on ${port}!`));
+const serveRef       = app.listen(port, '0.0.0.0', () => console.log(`HTTP Listening on ${port}!`))
 const httpsServerRef = app.listen(
   httpsServerPort,
   '0.0.0.0',
   () => console.log(`HTTPS is Listening on ${httpsServerPort}!`)
-);
+)
 
-// ioServer.listen(ioPort, () => console.log(`IO is listening on ${ioPort}!`));
-ioServer.attach(serveRef);
-ioServer.attach(httpsServerRef);
-
+ioServer.attach(serveRef)
+ioServer.attach(httpsServerRef)
 
