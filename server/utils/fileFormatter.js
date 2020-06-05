@@ -13,11 +13,15 @@ function formatLintErrorMessage(messages) {
 
   if (messages && messages.length > 0) {
     return messages.reduce((prev, curr) => {
-      const { severity } = curr
+      const { severity, ruleId, message } = curr
       const messageType = messageTypeMap[severity]
       const prevTypeItems = prev[`${messageType}s`]
 
       curr.type = messageTypeMap[severity]
+
+      if (!ruleId) {
+        curr.message = message.slice(0, message.indexOf('\n'))
+      }
 
       return {
         ...prev,

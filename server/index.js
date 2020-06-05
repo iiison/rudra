@@ -121,7 +121,12 @@ async function handleFileImport({
 
   if (filteredList.length === 1) {
     const relativePath = path.relative(fileDirName, filteredList[0])
-    const { dir, name, ext } = path.parse(relativePath)
+    const {
+      dir,
+      name,
+      ext
+    } = path.parse(relativePath)
+
     let importRightPart = ''
 
     if (ext === '.js') {
@@ -306,6 +311,10 @@ ioServer.on('connection', client => {
     const { errorCount, warningCount } = meta
 
     if (errorCount || warningCount) {
+      console.log(chalk.red('*******************'))
+      console.log(errors)
+      console.log(chalk.red('*******************'))
+
       ioServer.emit('show context', {
         type : 'lint errors',
         data : {
@@ -316,9 +325,7 @@ ioServer.on('connection', client => {
     }
   })
 
-  client.on('disconnect', () => {
-    console.log('Connection closed!')
-  })
+  client.on('disconnect', () => console.log('Connection closed!'))
 })
 
 const serveRef       = app.listen(port, '0.0.0.0', () => console.log(`HTTP Listening on ${port}!`))

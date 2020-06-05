@@ -116,6 +116,12 @@ function setupPage({
     }
   })
 
+  socket.on('show context', (data = {}) => {
+    console.log('*******************')
+    console.log(data)
+    console.log('*******************')
+  })
+
   annyang.addCommands(commands)
 }
 
