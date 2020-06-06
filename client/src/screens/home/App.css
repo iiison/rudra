@@ -99,7 +99,8 @@
   position: absolute;
   right: 0;
   bottom: 0;
-  width: 250px;
+  min-width: 250px;
+  max-width: 50%;
   z-index: 9999;
   background: #1f212b;
   border: 1px solid #1B1E29;
@@ -128,7 +129,7 @@
   transition: all .5s ease-in-out;
 }
 
-.context-options li:hover{
+.context-options li:not(.lint-error, .lint-warning):hover{
   background: #fff;
   color: #1f212c;
 }
@@ -140,5 +141,15 @@
   outline: none;
   border: 1px solid #33334a;
   margin-top: 10px;
+}
+
+.lint-error{
+  font-size: 0.75em;
+  color: red;
+}
+
+.lint-warning{
+  color: yellow;
+  font-size: 0.75em;
 }
 

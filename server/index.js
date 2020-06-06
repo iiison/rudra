@@ -302,11 +302,12 @@ ioServer.on('connection', client => {
 
     if (formattedContent) {
       makeFile(file, formattedContent)
-      ioServer.emit('add new content', {
-        ...data,
-        fileContent : formattedContent
-      })
     }
+
+    ioServer.emit('add new content', {
+      ...data,
+      fileContent : formattedContent || newContent
+    })
 
     const { errorCount, warningCount } = meta
 

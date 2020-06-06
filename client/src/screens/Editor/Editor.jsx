@@ -5,6 +5,7 @@ import { useParams }                  from 'react-router-dom'
 import annyang                        from 'annyang'
 
 import { socket } from '../../index'
+import LintErrorTemplate from './LintErrorTemplate'
 
 import { setNotificationContent, toggleContext } from '../../redux/modules/wrapper/wrapper'
 
@@ -79,9 +80,11 @@ function setupPage({
   })
 
   socket.on('add new content', (data = {}) => {
-    const { fileContent } = data
+    const { fileContent, line } = data
+    const parsedLineNumber = parseInt(line, 10)
 
     setRenderedContent(fileContent)
+    setCursorPosition(parsedLineNumber)
   })
 
   socket.on('import operation', (data = {}) => {
@@ -116,10 +119,26 @@ function setupPage({
     }
   })
 
-  socket.on('show context', (data = {}) => {
-    console.log('*******************')
-    console.log(data)
-    console.log('*******************')
+  socket.on('show context', ({ type, data } = {}) => {
+    const {
+      meta,
+      errors
+    } = data
+    const title = `Lint: ${meta.errorCount} Errors, ${meta.warningCount} Warnings`
+    const allErrors = [...errors.errors, ...errors.warnings].map(error => {
+      error.key = error.message
+
+      return error
+    })
+
+    dispatch(setNotificationContent({
+      type,
+      title,
+      options  : allErrors,
+      template : LintErrorTemplate,
+      event    : ({ active, options }) => console.log(active, options)
+    }))
+    dispatch(toggleContext())
   })
 
   annyang.addCommands(commands)
@@ -146,7 +165,11 @@ export default function Editor() {
     fileName : selectedFilePath
   }), [])
 
-  useEffect(() => () => Prism.highlightAll(), [renderedContent])
+  // useEffect(() => () => Prism.highlightAll(), [renderedContent])
+
+  console.log('*******************')
+  console.log(cursorPosition)
+  console.log('*******************')
 
   return (
     <div className='editor-cont'>
@@ -167,7 +190,6 @@ export default function Editor() {
               value={renderedContent}
               height='calc(100vh - 62px)'
               cursorStart={cursorPosition}
-              enableLiveAutocompletion={true}
               editorProps={{ $blockScrolling: true }}
               onChange={code => setRenderedContent(code)}
             />

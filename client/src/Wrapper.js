@@ -51,9 +51,10 @@ function Wrapper({ children }) {
 
   const { content, showContext } = useSelector(state => state.wrapper)
   const {
-    event   : customEvent,
-    title   : notficationHeader,
-    options : notficationOptions
+    event    : customEvent,
+    title    : notficationHeader,
+    options  : notficationOptions,
+    template : optionContentTemplate
   } = content
 
   return (
@@ -66,14 +67,14 @@ function Wrapper({ children }) {
             <ul className='context-options'>
               {notficationOptions.map(item => (
                 <li
-                  key={item}
+                  key={item.key || item}
                   onClick={() => handleOptionClick({
                     customEvent,
                     active  : item,
                     options : notficationOptions
                   })}
                 >
-                  {item}
+                  {optionContentTemplate ? optionContentTemplate(item) : item}
                 </li>
               ))}
               {notficationOptions.length === 0 && (
