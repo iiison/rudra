@@ -144,8 +144,19 @@ function setupPage({
   annyang.addCommands(commands)
 }
 
+function handleEditorChange({ setwasCodeEdited, code, setRenderedContent }) {
+  setRenderedContent(code)
+  setwasCodeEdited(true)
+}
+
+function handleManualCodeSave({}) {
+  // Make Annyang Command to save the data
+  // Update server
+}
+
 export default function Editor() {
   const [ renderedContent, setRenderedContent ] = useState('')
+  const [ wasCodeEdited, setwasCodeEdited ] = useState(false)
   const [ cursorPosition, setCursorPosition ] = useState(1)
   const { files } = useSelector(state => state.home)
   const { index } = useParams()
@@ -165,17 +176,16 @@ export default function Editor() {
     fileName : selectedFilePath
   }), [])
 
-  // useEffect(() => () => Prism.highlightAll(), [renderedContent])
-
-  console.log('*******************')
-  console.log(cursorPosition)
-  console.log('*******************')
+  useEffect(() => () => Prism.highlightAll(), [renderedContent])
 
   return (
     <div className='editor-cont'>
       <header className='editor-header'>
         <img className='small-monk' src={monk} alt='logo' />
         <h1>Rudra</h1>
+        {
+          wasCodeEdited && (<div className='editor-save'>Save</div>)
+        }
       </header>
       <div className='editor'>
         {
@@ -191,7 +201,7 @@ export default function Editor() {
               height='calc(100vh - 62px)'
               cursorStart={cursorPosition}
               editorProps={{ $blockScrolling: true }}
-              onChange={code => setRenderedContent(code)}
+              onChange={code => handleEditorChange({ code, setRenderedContent, setwasCodeEdited })}
             />
           )
         }

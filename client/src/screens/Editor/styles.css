@@ -12,6 +12,8 @@
   position: fixed;
   width: 100%;
   z-index: 9999;
+  box-sizing: border-box;
+  justify-content: start;
 }
 
 .editor-header h1{
@@ -26,4 +28,13 @@
 
 .editor{
   padding-top: 62px;
+}
+
+.editor-save{
+  margin-left: auto;
+  border: 1px solid #fff;
+  padding: 5px 10px;
+  color: #fff;
+  font-size: 0.8em;
+  border-radius: 5px;
 }
