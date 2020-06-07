@@ -80,7 +80,7 @@ function setupPage({
   })
 
   socket.on('add new content', (data = {}) => {
-    const { fileContent, line } = data
+    const { fileContent, line = 1 } = data
     const parsedLineNumber = parseInt(line, 10)
 
     setRenderedContent(fileContent)
@@ -138,7 +138,7 @@ function setupPage({
       template : LintErrorTemplate,
       event    : ({ active, options }) => console.log(active, options)
     }))
-    dispatch(toggleContext())
+    dispatch(toggleContext(true))
   })
 
   annyang.addCommands(commands)
@@ -149,9 +149,13 @@ function handleEditorChange({ setwasCodeEdited, code, setRenderedContent }) {
   setwasCodeEdited(true)
 }
 
-function handleManualCodeSave({}) {
-  // Make Annyang Command to save the data
-  // Update server
+function handleManualCodeSave(file, content, setwasCodeEdited) {
+  socket.emit('save content', {
+    file,
+    content,
+  })
+
+  setwasCodeEdited(false)
 }
 
 export default function Editor() {
@@ -176,7 +180,13 @@ export default function Editor() {
     fileName : selectedFilePath
   }), [])
 
-  useEffect(() => () => Prism.highlightAll(), [renderedContent])
+  useEffect(() => () => {
+    Prism.highlightAll()
+    annyang.removeCommands(['save contents'])
+    annyang.addCommands({
+      'save contents' : () => handleManualCodeSave(selectedFilePath, renderedContent, setwasCodeEdited)
+    })
+  }, [renderedContent, selectedFilePath])
 
   return (
     <div className='editor-cont'>
@@ -184,7 +194,12 @@ export default function Editor() {
         <img className='small-monk' src={monk} alt='logo' />
         <h1>Rudra</h1>
         {
-          wasCodeEdited && (<div className='editor-save'>Save</div>)
+          wasCodeEdited && (
+            <div
+              className='editor-save'
+              onClick={() => handleManualCodeSave(selectedFilePath, renderedContent, setwasCodeEdited)}
+            >Save</div>
+          )
         }
       </header>
       <div className='editor'>

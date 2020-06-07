@@ -283,7 +283,7 @@ const PROD_RULES = {
 };
 
 const DEV_RULES = {
-  "no-console"       : 1,
+  "no-console"       : 0,
   "no-debugger"      : 1,
   "no-alert"         : 1,
   "no-unused-vars"   : [1, { "varsIgnorePattern": "[iI]gnored" }],

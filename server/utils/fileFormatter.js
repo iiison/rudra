@@ -45,14 +45,21 @@ function format({ file, content }) {
     : engine.executeOnText(content)
   const {
     output,
+    source,
     messages,
     errorCount,
     warningCount,
   } = report.results[0] || []
   const formattedErrors = formatLintErrorMessage(messages)
 
+  console.log('*******************')
+  console.log(source)
+  console.log('-------------------')
+  console.log(output)
+  console.log('*******************')
+
   return {
-    content : output,
+    content : output || source,
     errors  : formattedErrors,
     meta    : {
       errorCount,

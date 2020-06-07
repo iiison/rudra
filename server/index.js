@@ -39,9 +39,7 @@ const httpsServer     = https.createServer({ key, cert }, app)
 const ioServer        = io(server)
 const port            = 9000
 const httpsServerPort = 9001
-const ioPort          = 8000
 const { projPath }    = global
-
 
 const {
   makeDir,
@@ -81,7 +79,6 @@ function handleLibraryImport({
   operationOn,
   formattedNames
 }) {
-  const { name, file } = data
   const { dependencies, devDependencies } = JSON.parse(readFile('package.json'))
 
   const dependenciesList = [...Object.keys(dependencies), ...Object.keys(devDependencies)]
@@ -110,7 +107,7 @@ async function handleFileImport({
   formattedNames,
   filteredList : defaultFilteredList
 }) {
-  const { name, file } = data
+  const { file } = data
   const fileDirName = path.dirname(file)
   const filteredList = defaultFilteredList || await findFile(projPath, formattedNames)
 
@@ -136,6 +133,7 @@ async function handleFileImport({
     }
 
     const importContent = `import {} from '${importRightPart}'`
+
     addFileImportCode(importContent, data)
   } else {
     ioServer.emit('import operation', {
@@ -147,12 +145,45 @@ async function handleFileImport({
   }
 }
 
-ioServer.on('connection', client => {
-  client.on('event', data => {
+function validateAndSaveFileContent({ content, file, data = {} }) {
+  const {
+    content : formattedContent,
+    errors,
+    meta
+  } = format({ content })
+
+  if (formattedContent) {
+    makeFile(file, formattedContent)
+  }
+
+  ioServer.emit('add new content', {
+    ...data,
+    fileContent : formattedContent || content
+  })
+
+  const { errorCount, warningCount } = meta
+
+  if (errorCount || warningCount) {
+    console.log(chalk.red('*******************'))
+    console.log(errors)
+    console.log(chalk.red('*******************'))
+
+    ioServer.emit('show context', {
+      type : 'lint errors',
+      data : {
+        meta,
+        errors
+      }
+    })
+  }
+}
+
+ioServer.on('connection', (client) => {
+  client.on('event', (data) => {
     console.log(data)
   })
 
-  client.on('openFile', async data => {
+  client.on('openFile', async (data) => {
     console.log('*****************************')
     console.log(data.file)
     console.log('*****************************')
@@ -162,19 +193,19 @@ ioServer.on('connection', client => {
     ioServer.emit('openFile', { filteredFiles, file : data.file.join(' ') })
   })
 
-  client.on('make directory', async ({ path, operation, dirName }) => {
+  client.on('make directory', async ({ path : filePath, operation, dirName }) => {
     if (operation === 'list directory') {
-      const filteredDirs = await findDirectory(projPath, path)
+      const filteredDirs = await findDirectory(projPath, filePath)
 
       ioServer.emit('list directory', {
         filteredDirs,
         listFor : 'directory',
-        file : path.join(' ')
+        file    : filePath.join(' ')
       })
     } else if (operation === 'create directory') {
       let exceptions
 
-      if (!ifFileExists(dirName)){
+      if (!ifFileExists(dirName)) {
         console.log('*******************')
         console.log(dirName)
         console.log('*******************')
@@ -183,7 +214,7 @@ ioServer.on('connection', client => {
 
         try {
           makeDir(dirPath)
-        } catch(error) {
+        } catch (error) {
           exceptions = error
         }
       } else {
@@ -198,24 +229,24 @@ ioServer.on('connection', client => {
     }
   })
 
-  client.on('make file', async ({ path, operation, dirName }) => {
+  client.on('make file', async ({ path : filePath, operation, dirName }) => {
     if (operation === 'list directory') {
-      const filteredDirs = await findDirectory(projPath, path)
+      const filteredDirs = await findDirectory(projPath, filePath)
 
       ioServer.emit('list directory', {
         filteredDirs,
         listFor : 'file',
-        file : path.join(' ')
+        file    : filePath.join(' ')
       })
     } else if (operation === 'create file') {
       let exceptions
 
-      if (!ifFileExists(dirName)){
+      if (!ifFileExists(dirName)) {
         const dirPath = dirName
 
         try {
           makeFile(dirPath, '// Add code here.')
-        } catch(error) {
+        } catch (error) {
           exceptions = error
         }
       } else {
@@ -233,6 +264,7 @@ ioServer.on('connection', client => {
   client.on('import operation', async (data) => {
     const { operation, name, file } = data
     const formattedNames = formatInputQuery(name)
+
     let operationOn = ''
 
     if (operation === 'library import') {
@@ -294,36 +326,23 @@ ioServer.on('connection', client => {
     const lastPart   = fileContentByLine.slice(normalizedLineNumber)
     const newPart    = getNewContent({ type })
     const newContent = [...firstPart, ...newPart, ...lastPart].join('\n')
-    const {
-      content : formattedContent,
-      errors,
-      meta
-    } = format({ content : newContent })
 
-    if (formattedContent) {
-      makeFile(file, formattedContent)
-    }
+    validateAndSaveFileContent({
+      data,
+      file,
+      content : newContent
+    })
+  })
 
-    ioServer.emit('add new content', {
-      ...data,
-      fileContent : formattedContent || newContent
+  client.on('save content', ({ file, content }) => {
+    validateAndSaveFileContent({
+      file,
+      content
     })
 
-    const { errorCount, warningCount } = meta
-
-    if (errorCount || warningCount) {
-      console.log(chalk.red('*******************'))
-      console.log(errors)
-      console.log(chalk.red('*******************'))
-
-      ioServer.emit('show context', {
-        type : 'lint errors',
-        data : {
-          meta,
-          errors
-        }
-      })
-    }
+    // if (formattedContent) {
+    //   makeFile(file, formattedContent)
+    // }
   })
 
   client.on('disconnect', () => console.log('Connection closed!'))
