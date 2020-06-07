@@ -12,13 +12,15 @@ import * as serviceWorker from './serviceWorker';
 
 export const socket = io()
 
-annyang.setLanguage('en-IN')
-annyang.start()
+if (annyang) {
+  annyang.setLanguage('en-IN')
+  annyang.start()
+}
 
 ReactDOM.render(
   <Provider store={store}>
     <BrowserRouter>
-      {routes()}
+      {routes(annyang)}
     </BrowserRouter>
   </Provider>, 
   document.getElementById('root')

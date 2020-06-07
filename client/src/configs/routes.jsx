@@ -13,15 +13,18 @@ import Wrapper from '../Wrapper'
 //   RepoDetails
 // } from '$CONTAINERS'
 
-const routes = () => (
+const routes = (annyangRef) => (
   <div className='app grid'>
     <div className='col'>
-      <Wrapper>
-        <Switch>
-          <Route exact={true} path='/' component={Home} />
-          <Route path='/explore/:query/:index' component={Editor} />
-        </Switch>
-      </Wrapper>
+      {annyangRef ? (
+        <Wrapper>
+          <Switch>
+            <Route exact={true} path='/' component={Home} />
+            <Route path='/explore/:query/:index' component={Editor} />
+          </Switch>
+        </Wrapper>
+      )
+      : (<div>Speech Synthesis is not supported!</div>)}
     </div>
   </div>
 )

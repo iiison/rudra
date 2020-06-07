@@ -11,16 +11,13 @@ const Base = {
     SharedArrayBuffer: "readonly"
   },
   parserOptions: {
-    ecmaFeatures: {
-      jsx: true
-    },
-    ecmaVersion: 2018,
+    ecmaVersion: 2019,
     sourceType: "module",
     impliedStrict: true
   },
-  plugins: ["react", "react-hooks"],
+  plugins: ["react"],
   settings: {
-    "import/resolver": "webpack",
+    // "import/resolver": "webpack",
     pragma: "React",
     react: {
       createClass: "createReactClass",
@@ -259,6 +256,7 @@ const baseRules = {
 	"react/jsx-indent-props": [2, 2],
 	"react/prop-types": [2, { ignore: ['children'] }],
 	"react/sort-comp": 0,
+  "react/jsx-props-no-spreading": 0,
 	"import/prefer-default-export" : 0,
   "react/prefer-stateless-function" : 0,
   "react-hooks/rules-of-hooks": 2,
@@ -269,7 +267,10 @@ const baseRules = {
   ////////////////////
   "jsx-a11y/interactive-supports-focus" : 0,
   "jsx-a11y/click-events-have-key-events" : 0,
-  "jsx-a11y/no-noninteractive-element-interactions" : 0
+  "jsx-a11y/no-noninteractive-element-interactions" : 0,
+
+  // Temp Rule
+  "import/no-unresolved" : 0
 };
 
 
@@ -282,7 +283,7 @@ const PROD_RULES = {
 };
 
 const DEV_RULES = {
-  "no-console"       : 1,
+  "no-console"       : 0,
   "no-debugger"      : 1,
   "no-alert"         : 1,
   "no-unused-vars"   : [1, { "varsIgnorePattern": "[iI]gnored" }],

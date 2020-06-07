@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector }   from 'react-redux';
-import { useLocation, useHistory }    from 'react-router-dom'
-import annyang                        from 'annyang'
+import React, { useEffect }        from 'react';
+import { useSelector }             from 'react-redux';
+import { useLocation, useHistory } from 'react-router-dom'
+import annyang                     from 'annyang'
 
-import Input from './screens/components/input/input'
+import { resetContext } from './redux/modules/wrapper/wrapper'
+import Input            from './screens/components/input/input'
 
 function SetupAnnyang({ history, location }) {
   const commands = {
@@ -26,6 +27,7 @@ function SetupAnnyang({ history, location }) {
 }
 
 function handleOptionClick({ customEvent, ...restOptions }) {
+  resetContext()
   return customEvent && customEvent(restOptions)
 }
 
@@ -39,7 +41,7 @@ function handleInputChange({ value, customEvent, ...restOptions }) {
 function Wrapper({ children }) {
   const location = useLocation()
   const history = useHistory()
-  const [showContext, toggleContext] = useState(true)
+  // const [showContext, toggleContext] = useState(true)
   // const [contextContent, setContext] = useState({
   //   heading: 'What is your problem?',
   //   listItems : ['itme 1', 'itme 2', 'itme 3', 'itme 4']
@@ -47,11 +49,13 @@ function Wrapper({ children }) {
 
   useEffect(() => SetupAnnyang({ history, location }), [location])
 
+  const { content, showContext } = useSelector(state => state.wrapper)
   const {
-    event   : customEvent,
-    title   : notficationHeader,
-    options : notficationOptions
-  } = useSelector(state => state.wrapper.content)
+    event    : customEvent,
+    title    : notficationHeader,
+    options  : notficationOptions,
+    template : optionContentTemplate
+  } = content
 
   return (
     <div>
@@ -63,16 +67,19 @@ function Wrapper({ children }) {
             <ul className='context-options'>
               {notficationOptions.map(item => (
                 <li
-                  key={item}
+                  key={item.key || item}
                   onClick={() => handleOptionClick({
                     customEvent,
                     active  : item,
                     options : notficationOptions
                   })}
                 >
-                  {item}
+                  {optionContentTemplate ? optionContentTemplate(item) : item}
                 </li>
               ))}
+              {notficationOptions.length === 0 && (
+                <li>Enter name in the input below:</li>
+              )}
               <li>
                 <Input
                   returnData={{

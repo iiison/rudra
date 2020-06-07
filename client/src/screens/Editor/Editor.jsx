@@ -5,7 +5,9 @@ import { useParams }                  from 'react-router-dom'
 import annyang                        from 'annyang'
 
 import { socket } from '../../index'
-import { setNotificationContent } from '../../redux/modules/wrapper/wrapper'
+import LintErrorTemplate from './LintErrorTemplate'
+
+import { setNotificationContent, toggleContext } from '../../redux/modules/wrapper/wrapper'
 
 // react-ace deps
 import AceEditor from 'react-ace';
@@ -27,11 +29,20 @@ function setupPage({
 }){
   window.Ace = AceEditor
   const commands = {
-    'add variable at line number :line with name *name' : (line, name) => {
+    'add variable at line number :line' : (line, name) => {
       socket.emit('addNewItem', {
         line,
         name,
         type : 'variable',
+        file : selectedFilePath
+      })
+    },
+
+    'add function at line number :line' : (line, name) => {
+      socket.emit('addNewItem', {
+        line,
+        name,
+        type : 'function',
         file : selectedFilePath
       })
     },
@@ -63,52 +74,93 @@ function setupPage({
 
   socket.on('renderFile', (data = {}) => {
     const { fileContent, cursorPosition = 1 } = data
+
     setCursorPosition(cursorPosition)
-
     setRenderedContent(fileContent)
-
-    // if (filteredFiles && filteredFiles.length) {
-    //   setMessage(`I found ${filteredFiles.length} files:`)
-    //   setFiles(formatFileNames({ filteredFiles, setSelectedFile }))
-    // } else {
-    //   setMessage(`I couldn't find any file with this name: ${file}.`)
-    //   setFiles([])
-    // }
   })
 
-  socket.on('addNewVariable', (data = {}) => {
-    const { fileContent } = data
+  socket.on('add new content', (data = {}) => {
+    const { fileContent, line = 1 } = data
+    const parsedLineNumber = parseInt(line, 10)
 
     setRenderedContent(fileContent)
+    setCursorPosition(parsedLineNumber)
   })
 
   socket.on('import operation', (data = {}) => {
-    const { operation, suggestions, query, operationOn } = data
+    const {
+      operation,
+      query,
+      operationOn,
+      suggestions : options
+    } = data
 
     if (operation && operation === 'show suggestions') {
+      const title = options.length
+        ? 'Choose one:'
+        : `Not found.`
+
+      console.log('*******************')
+      console.log(options)
+      console.log('*******************')
+
       dispatch(setNotificationContent({
-        title   : 'What is your prob?',
-        options : suggestions,
+        title,
+        options,
         event   : ({ active, options }) => {
           socket.emit('import operation', {
             ...query,
-            operation : `${operationOn} import confirmation`,
-            imortItem : active
+            imortItem : active,
+            operation : `${operationOn} import confirmation`
           })
-
-          console.log('*****************************')
-          console.log(active, options)
-          console.log('*****************************')
         }
       }))
+      dispatch(toggleContext())
     }
+  })
+
+  socket.on('show context', ({ type, data } = {}) => {
+    const {
+      meta,
+      errors
+    } = data
+    const title = `Lint: ${meta.errorCount} Errors, ${meta.warningCount} Warnings`
+    const allErrors = [...errors.errors, ...errors.warnings].map(error => {
+      error.key = error.message
+
+      return error
+    })
+
+    dispatch(setNotificationContent({
+      type,
+      title,
+      options  : allErrors,
+      template : LintErrorTemplate,
+      event    : ({ active, options }) => console.log(active, options)
+    }))
+    dispatch(toggleContext(true))
   })
 
   annyang.addCommands(commands)
 }
 
+function handleEditorChange({ setwasCodeEdited, code, setRenderedContent }) {
+  setRenderedContent(code)
+  setwasCodeEdited(true)
+}
+
+function handleManualCodeSave(file, content, setwasCodeEdited) {
+  socket.emit('save content', {
+    file,
+    content,
+  })
+
+  setwasCodeEdited(false)
+}
+
 export default function Editor() {
   const [ renderedContent, setRenderedContent ] = useState('')
+  const [ wasCodeEdited, setwasCodeEdited ] = useState(false)
   const [ cursorPosition, setCursorPosition ] = useState(1)
   const { files } = useSelector(state => state.home)
   const { index } = useParams()
@@ -128,13 +180,27 @@ export default function Editor() {
     fileName : selectedFilePath
   }), [])
 
-  useEffect(() => () => Prism.highlightAll(), [renderedContent])
+  useEffect(() => () => {
+    Prism.highlightAll()
+    annyang.removeCommands(['save contents'])
+    annyang.addCommands({
+      'save contents' : () => handleManualCodeSave(selectedFilePath, renderedContent, setwasCodeEdited)
+    })
+  }, [renderedContent, selectedFilePath])
 
   return (
     <div className='editor-cont'>
       <header className='editor-header'>
         <img className='small-monk' src={monk} alt='logo' />
         <h1>Rudra</h1>
+        {
+          wasCodeEdited && (
+            <div
+              className='editor-save'
+              onClick={() => handleManualCodeSave(selectedFilePath, renderedContent, setwasCodeEdited)}
+            >Save</div>
+          )
+        }
       </header>
       <div className='editor'>
         {
@@ -149,9 +215,8 @@ export default function Editor() {
               value={renderedContent}
               height='calc(100vh - 62px)'
               cursorStart={cursorPosition}
-              enableLiveAutocompletion={true}
               editorProps={{ $blockScrolling: true }}
-              onChange={code => setRenderedContent(code)}
+              onChange={code => handleEditorChange({ code, setRenderedContent, setwasCodeEdited })}
             />
           )
         }
