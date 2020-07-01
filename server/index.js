@@ -53,24 +53,50 @@ app.use(express.static(path.join(__dirname, 'artefacts')))
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'artefacts', 'index.html')))
 app.get('*', (req, res) => res.redirect('/'))
 
+function validateAndSaveFileContent({ content, file, data = {} }) {
+  const {
+    content : formattedContent,
+    errors,
+    meta
+  } = format({ content })
+
+  if (formattedContent) {
+    makeFile(file, formattedContent)
+  }
+
+  ioServer.emit('add new content', {
+    ...data,
+    fileContent : formattedContent || content
+  })
+
+  const { errorCount, warningCount } = meta
+
+  if (errorCount || warningCount) {
+    console.log(chalk.red('*******************'))
+    console.log(errors)
+    console.log(chalk.red('*******************'))
+
+    ioServer.emit('show context', {
+      type : 'lint errors',
+      data : {
+        meta,
+        errors
+      }
+    })
+  }
+}
+
 function addFileImportCode(importCode, data) {
-  const { file, name } = data
+  const { file } = data
   const fileContent = readFile(file)
   const fileContentByLine = fileContent.split(/\r?\n/)
 
   const newContent = [importCode, ...fileContentByLine]
 
-  /*
-   * TODO:
-   * Add file import to file import bunch
-   * Lib import to lib import bunch
-   * Write that shit to the respective file
-  */
-
-  ioServer.emit('add new variable', {
-    name,
+  validateAndSaveFileContent({
     file,
-    fileContent : newContent.join('\n')
+    data,
+    content : newContent.join('\n')
   })
 }
 
@@ -124,12 +150,10 @@ async function handleFileImport({
       ext
     } = path.parse(relativePath)
 
-    let importRightPart = ''
+    let importRightPart = relativePath
 
     if (ext === '.js') {
       importRightPart = `${dir}/${name}`
-    } else {
-      importRightPart = relativePath
     }
 
     const importContent = `import {} from '${importRightPart}'`
@@ -141,39 +165,6 @@ async function handleFileImport({
       query       : data,
       suggestions : filteredList,
       operation   : 'show suggestions'
-    })
-  }
-}
-
-function validateAndSaveFileContent({ content, file, data = {} }) {
-  const {
-    content : formattedContent,
-    errors,
-    meta
-  } = format({ content })
-
-  if (formattedContent) {
-    makeFile(file, formattedContent)
-  }
-
-  ioServer.emit('add new content', {
-    ...data,
-    fileContent : formattedContent || content
-  })
-
-  const { errorCount, warningCount } = meta
-
-  if (errorCount || warningCount) {
-    console.log(chalk.red('*******************'))
-    console.log(errors)
-    console.log(chalk.red('*******************'))
-
-    ioServer.emit('show context', {
-      type : 'lint errors',
-      data : {
-        meta,
-        errors
-      }
     })
   }
 }
@@ -194,6 +185,10 @@ ioServer.on('connection', (client) => {
   })
 
   client.on('make directory', async ({ path : filePath, operation, dirName }) => {
+    console.log('*******************')
+    console.log(filePath)
+    console.log('*******************')
+
     if (operation === 'list directory') {
       const filteredDirs = await findDirectory(projPath, filePath)
 
@@ -290,10 +285,10 @@ ioServer.on('connection', (client) => {
 
       const newContent = [importContent, ...fileContentByLine]
 
-      ioServer.emit('add new variable', {
-        name,
+      validateAndSaveFileContent({
+        data,
         file,
-        fileContent : newContent.join('\n')
+        content : newContent.join('\n')
       })
     } else if (operation === 'file import confirmation') {
       handleFileImport({

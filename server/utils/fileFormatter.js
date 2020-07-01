@@ -23,6 +23,10 @@ function formatLintErrorMessage(messages) {
         curr.message = message.slice(0, message.indexOf('\n'))
       }
 
+      if (ruleId === `react-hooks/rules-of-hooks`) {
+        return prev
+      }
+
       return {
         ...prev,
         [`${messageType}s`] : [
@@ -40,6 +44,10 @@ function formatLintErrorMessage(messages) {
 }
 
 function format({ file, content }) {
+  if (content.constructor.name !== 'String') {
+    throw new Error('Please check content type, it should be String')
+  }
+
   const report = file
     ? engine.executeOnFiles(file)
     : engine.executeOnText(content)
