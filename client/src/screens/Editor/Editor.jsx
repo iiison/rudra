@@ -47,6 +47,40 @@ function setupPage({
       })
     },
 
+    'add react class component' : (name) => {
+      socket.emit('addNewItem', {
+        name,
+        changeType : 'file',
+        type       : 'reactClassComponent',
+        file       : selectedFilePath
+      })
+    },
+
+    'add react function component' : (name) => {
+      socket.emit('addNewItem', {
+        name,
+        changeType : 'file',
+        type       : 'reactFunctionComponent',
+        file       : selectedFilePath
+      })
+    },
+
+    'add state hook at line number *line' : (line) => {
+      socket.emit('addNewItem', {
+        line,
+        type : 'reactStateHook',
+        file : selectedFilePath
+      })
+    },
+
+    'add use effect at line number *line' : (line) => {
+      socket.emit('addNewItem', {
+        line,
+        type : 'reactUseEffectHook',
+        file : selectedFilePath
+      })
+    },
+
     'import library *libraryName' : (libraryName) => {
       socket.emit('import operation', {
         name      : libraryName,

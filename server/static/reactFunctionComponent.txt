@@ -1,0 +1,11 @@
+import React, {} from 'react'
+// import { useDispatch } from 'react-redux'
+// import './styles.css';
+
+export default function _tempComponent(props) {
+  // const dispatch = useDispatch()
+
+  return (
+    <div className=''>temp component</div>
+  );
+}

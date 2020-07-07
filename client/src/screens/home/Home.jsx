@@ -194,6 +194,12 @@ function App() {
           {message}
           <div className='t-left'>
             {files.length > 0 && files}
+            <div className='todos'>
+              <p>TODO:</p>
+              <p>- Add Code to Function Component</p>
+              <p>- Add Code to make Class Component</p>
+              <p>- Add Code to add hooks: useEffect, useState, useSelector</p>
+            </div>
           </div>
         </p>
       </header>

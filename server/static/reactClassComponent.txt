@@ -1,0 +1,23 @@
+import React, { Component } from 'react'
+import PropTypes            from 'prop-types'
+
+export default class _tempComponent extends Component {
+  constructor(props) {
+    super(props)
+  }
+
+  render() {
+    return (
+      <div className=''>Temp Class</div>
+    )
+  }
+
+  // componentDidMount() {
+  // }
+
+  // static defaultProps = {
+  // }
+
+  // static propTypes = {
+  // }
+}

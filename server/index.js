@@ -24,9 +24,9 @@ const {
 setProjectPath('../../git-war-demo')
 
 // Add experimental imports here
-const chalk = require('chalk')
+const chalk       = require('chalk')
 const babelParser = require('@babel/parser')
-const clipboardy = require('clipboardy')
+const clipboardy  = require('clipboardy')
 //
 
 // Certificates
@@ -307,20 +307,32 @@ ioServer.on('connection', (client) => {
   })
 
   client.on('addNewItem', (data) => {
+    let newContent
+
     const {
       line,
       type,
-      file
+      file,
+      changeType = 'line'
     } = data
 
     const normalizedLineNumber = parseInt(line, 10) - 1
     const fileContent          = readFile(file)
     const fileContentByLine    = fileContent.split(/\r?\n/)
+    const newPart              = getNewContent({ type })
 
-    const firstPart  = fileContentByLine.slice(0, normalizedLineNumber)
-    const lastPart   = fileContentByLine.slice(normalizedLineNumber)
-    const newPart    = getNewContent({ type })
-    const newContent = [...firstPart, ...newPart, ...lastPart].join('\n')
+    console.log('*******************')
+    console.log(newPart)
+    console.log('*******************')
+
+    if (changeType === 'line') {
+      const firstPart = fileContentByLine.slice(0, normalizedLineNumber)
+      const lastPart  = fileContentByLine.slice(normalizedLineNumber)
+
+      newContent = [...firstPart, ...newPart, ...lastPart].join('\n')
+    } else if (changeType === 'file') {
+      newContent = newPart
+    }
 
     validateAndSaveFileContent({
       data,

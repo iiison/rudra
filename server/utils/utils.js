@@ -13,7 +13,7 @@ function formatInputQuery(input) {
 
 function findSimilaritiesInLists({ target, input }) {
   return [...new Set(target.map(
-    entry => {
+    (entry) => {
       for (const i in input) {
         const name = input[i].toLowerCase()
 
@@ -27,10 +27,10 @@ function findSimilaritiesInLists({ target, input }) {
 
 function stripCommonPartsFromPaths(paths, projPath) {
   if (projPath) {
-    return paths.map( path => path.replace(projPath, '') )
+    return paths.map((path) => path.replace(projPath, ''))
   }
 
-  var [smallestPath, largestPath] = paths.reduce(([sml, lrg], path) => {
+  const [smallestPath, largestPath] = paths.reduce(([sml, lrg], path) => {
     if (!sml) {
       sml = path
       lrg = path
@@ -47,27 +47,27 @@ function stripCommonPartsFromPaths(paths, projPath) {
     return [sml, lrg]
   }, ['', ''])
 
-  let i = 0
+  let iterator = 0
 
-  for (; i < smallestPath.length; i++) {
-    if (smallestPath[i] === largestPath[i]) {
+  for (; iterator < smallestPath.length; iterator += 1) {
+    if (smallestPath[iterator] === largestPath[iterator]) {
       continue
     }
 
     break
   }
 
-  return paths.map((path) => path.substring(i - 1))
+  return paths.map((path) => path.substring(iterator - 1))
 }
 
 function readFileFromProject(projectPath, path) {
   return {
     readFile     : (filePath) => fs.readFileSync(path.join(projectPath, filePath), 'utf8'),
     ifFileExists : (filePath) => fs.existsSync(path.join(projectPath, filePath)),
-    makeDir      : (dirPath) =>  fs.mkdirSync(path.join(projectPath, dirPath)),
+    makeDir      : (dirPath) => fs.mkdirSync(path.join(projectPath, dirPath)),
     makeFile     : (filePath, content) => fs.writeFileSync(
       path.join(projectPath, filePath),
-      content, 
+      content,
       {
         encoding : 'utf8',
         mode     : 0o755
