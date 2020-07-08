@@ -313,17 +313,14 @@ ioServer.on('connection', (client) => {
       line,
       type,
       file,
+      meta = {},
       changeType = 'line'
     } = data
 
     const normalizedLineNumber = parseInt(line, 10) - 1
     const fileContent          = readFile(file)
     const fileContentByLine    = fileContent.split(/\r?\n/)
-    const newPart              = getNewContent({ type })
-
-    console.log('*******************')
-    console.log(newPart)
-    console.log('*******************')
+    const newPart              = getNewContent({ type, meta })
 
     if (changeType === 'line') {
       const firstPart = fileContentByLine.slice(0, normalizedLineNumber)

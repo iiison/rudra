@@ -65,7 +65,7 @@ function Wrapper({ children }) {
           <div className='context-menu'>
             <h2 className='context-title'>{notficationHeader}</h2>
             <ul className='context-options'>
-              {notficationOptions.map(item => (
+              {notficationOptions && notficationOptions.map && notficationOptions.map(item => (
                 <li
                   key={item.key || item}
                   onClick={() => handleOptionClick({

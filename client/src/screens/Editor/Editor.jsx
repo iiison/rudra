@@ -7,7 +7,11 @@ import annyang                        from 'annyang'
 import { socket } from '../../index'
 import LintErrorTemplate from './LintErrorTemplate'
 
-import { setNotificationContent, toggleContext } from '../../redux/modules/wrapper/wrapper'
+import {
+  setNotificationContent,
+  toggleContext,
+  resetContext
+} from '../../redux/modules/wrapper/wrapper'
 
 // react-ace deps
 import AceEditor from 'react-ace';
@@ -66,11 +70,24 @@ function setupPage({
     },
 
     'add state hook at line number *line' : (line) => {
-      socket.emit('addNewItem', {
-        line,
-        type : 'reactStateHook',
-        file : selectedFilePath
-      })
+      dispatch(toggleContext(true))
+      dispatch(setNotificationContent({
+        title   : 'Enter state hook variable name',
+        options : [],
+        event   : ({ active = 'temp', options }) => {
+          socket.emit('addNewItem', {
+            line,
+            type : 'reactStateHook',
+            file : selectedFilePath,
+            meta : {
+              name : active
+            }
+          })
+
+          resetContext()
+        }
+      }))
+
     },
 
     'add use effect at line number *line' : (line) => {
@@ -196,7 +213,13 @@ export default function Editor() {
   const [ renderedContent, setRenderedContent ] = useState('')
   const [ wasCodeEdited, setwasCodeEdited ] = useState(false)
   const [ cursorPosition, setCursorPosition ] = useState(1)
-  const { files } = useSelector(state => state.home)
+  const { home } = useSelector(({ home, wrapper }) => {
+    return {
+      home,
+      wrapper
+    }
+  })
+  const { files } = home
   const { index } = useParams()
   const dispatch = useDispatch()
 
