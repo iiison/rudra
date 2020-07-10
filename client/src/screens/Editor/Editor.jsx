@@ -87,7 +87,6 @@ function setupPage({
           resetContext()
         }
       }))
-
     },
 
     'add use effect at line number *line' : (line) => {
@@ -96,6 +95,43 @@ function setupPage({
         type : 'reactUseEffectHook',
         file : selectedFilePath
       })
+    },
+
+    'make reducer function' : () => {
+      dispatch(toggleContext(true))
+      dispatch(setNotificationContent({
+        options    : [],
+        changeType : 'file',
+        title      : 'Enter Reducer Function Name',
+        event      : ({ active = 'temp', options }) => {
+          socket.emit('addNewItem', {
+            line : 1,
+            type : 'reducerFunction',
+            file : selectedFilePath,
+            meta : { name : active }
+          })
+
+          resetContext()
+        }
+      }))
+    },
+
+    'make actions at line number :line' : (line) => {
+      dispatch(toggleContext(true))
+      dispatch(setNotificationContent({
+        options : [],
+        title   : 'Enter Reducer Function Name',
+        event   : ({ active = 'temp', options }) => {
+          socket.emit('addNewItem', {
+            line,
+            type : 'reduxActions',
+            file : selectedFilePath,
+            meta : { name : active }
+          })
+
+          resetContext()
+        }
+      }))
     },
 
     'import library *libraryName' : (libraryName) => {

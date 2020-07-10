@@ -1,6 +1,12 @@
 const fs   = require('fs')
 const path = require('path')
 
+const { actionMakerHelper } = require('./codeGeneratorHelpers')
+const test = fs.readFileSync(
+  path.resolve('./static/reduxActions.txt'),
+  'utf8'
+)
+
 function getNewContent({ type, meta }) {
   const map = {
     variable            : [`const tempVar = ''`],
@@ -14,11 +20,23 @@ function getNewContent({ type, meta }) {
     reactFunctionComponent : fs.readFileSync(
       path.resolve('./static/reactFunctionComponent.txt'),
       'utf8'
-    )
+    ),
+    reducerFunction : fs.readFileSync(
+      path.resolve('./static/reducerFunction.txt'),
+      'utf8'
+    ),
+    reduxActions : 'const actions = {}'
   }
 
   const rawResult = map[type]
   const { name } = meta
+
+  if (type === 'reduxActions') {
+    return actionMakerHelper({
+      code       : test,
+      actionName : name
+    })
+  }
 
   if (name) {
     return [rawResult[0].replace(/.%/g, (matched) => {

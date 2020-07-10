@@ -1,0 +1,13 @@
+import { makeReducer } from '../../utils/reduxUtils'
+
+const % = makeReducer({
+  actionName : '__',
+  shouldMergeDefaultStates : true,
+  initialState : {},
+  // additionalActions(state, action) {
+  //   return {}
+  // }
+})
+
+export default %
+

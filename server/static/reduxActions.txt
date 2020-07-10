@@ -1,0 +1,5 @@
+const {
+  defaultAction : defaultAction,
+  successAction : success,
+  failureAction : failure
+} = makeActions('name')
