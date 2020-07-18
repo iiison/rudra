@@ -1,8 +1,7 @@
 const { parse } = require('@babel/parser')
 const traverse = require('@babel/traverse').default
 const generate = require('@babel/generator').default
-// const { generate } = require('astring')
-
+const { startCase } = require('lodash')
 
 function generateAST(code, options = {}) {
   try {
@@ -33,6 +32,31 @@ function actionMakerHelper({ code, actionName }) {
   return newCode.split('\n')
 }
 
+function reactFunctionComponentHelper({ code, name }) {
+  const options = {
+    sourceType : 'unambiguous',
+    plugins    : ['jsx']
+  }
+  const ast = generateAST(code, options)
+  const sentenceCase = startCase(name)
+
+  console.log('%%%%%%%%%%%%%%%%%%%')
+  console.log(sentenceCase)
+  console.log('%%%%%%%%%%%%%%%%%%%')
+
+  traverse(ast, {
+    FunctionDeclaration : ({ node }) => {
+      node.id.name = name
+    },
+    JSXText : ({ node }) => {
+      node.value = sentenceCase
+    }
+  })
+
+  return generate(ast).code
+}
+
 module.exports = {
-  actionMakerHelper
+  actionMakerHelper,
+  reactFunctionComponentHelper
 }

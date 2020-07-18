@@ -60,10 +60,30 @@ function setupPage({
       })
     },
 
-    'add react function component' : (name) => {
+    'add react function component' : () => {
+      dispatch(toggleContext(true))
+      dispatch(setNotificationContent({
+        title   : 'Enter state hook variable name',
+        options : [],
+        event   : ({ active = 'temp', options }) => {
+          socket.emit('addNewItem', {
+            changeType : 'file',
+            type       : 'reactFunctionComponent',
+            file       : selectedFilePath,
+            meta       : {
+              name : active
+            }
+          })
+
+          resetContext()
+        }
+      }))
+    },
+
+    'add react function component at line number :line' : (line) => {
       socket.emit('addNewItem', {
-        name,
-        changeType : 'file',
+        line,
+        changeType : 'line',
         type       : 'reactFunctionComponent',
         file       : selectedFilePath
       })
