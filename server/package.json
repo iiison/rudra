@@ -9,7 +9,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "chalk": "^4.0.0",
     "clipboardy": "^2.3.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.1.0",
@@ -24,6 +23,7 @@
     "@babel/parser": "^7.9.4",
     "@babel/traverse": "^7.9.5",
     "babel-eslint": "^10.1.0",
+    "chalk": "^4.1.0",
     "eslint-friendly-formatter": "^4.0.1",
     "express": "^4.17.1",
     "fuzzy": "^0.1.3",
