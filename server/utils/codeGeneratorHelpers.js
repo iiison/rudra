@@ -40,10 +40,6 @@ function reactFunctionComponentHelper({ code, name }) {
   const ast = generateAST(code, options)
   const sentenceCase = startCase(name)
 
-  console.log('%%%%%%%%%%%%%%%%%%%')
-  console.log(sentenceCase)
-  console.log('%%%%%%%%%%%%%%%%%%%')
-
   traverse(ast, {
     FunctionDeclaration : ({ node }) => {
       node.id.name = name
@@ -55,6 +51,8 @@ function reactFunctionComponentHelper({ code, name }) {
 
   return generate(ast).code
 }
+
+// function hookHelper()
 
 module.exports = {
   actionMakerHelper,

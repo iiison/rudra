@@ -25,6 +25,18 @@ import '@fortawesome/fontawesome-free/css/fontawesome.min.css'
 import '@fortawesome/fontawesome-free/css/all.min.css'
 import '@fortawesome/fontawesome-free/css/solid.min.css'
 
+function askUserAndCallServer({ title, callServer, dispatch }) {
+  dispatch(toggleContext(true))
+  dispatch(setNotificationContent({
+    title,
+    options : [],
+    event   : ({ active = 'temp', options }) => {
+      callServer({ active, options })
+      resetContext()
+    }
+  }))
+}
+
 function setupPage({
   dispatch,
   selectedFilePath,
@@ -33,7 +45,7 @@ function setupPage({
 }){
   window.Ace = AceEditor
   const commands = {
-    'add variable at line number :line' : (line, name) => {
+    'make variable at line number :line' : (line, name) => {
       socket.emit('addNewItem', {
         line,
         name,
@@ -42,7 +54,7 @@ function setupPage({
       })
     },
 
-    'add function at line number :line' : (line, name) => {
+    'make function at line number :line' : (line, name) => {
       socket.emit('addNewItem', {
         line,
         name,
@@ -51,7 +63,7 @@ function setupPage({
       })
     },
 
-    'add react class component' : (name) => {
+    'make react class component' : (name) => {
       socket.emit('addNewItem', {
         name,
         changeType : 'file',
@@ -60,12 +72,11 @@ function setupPage({
       })
     },
 
-    'add react function component' : () => {
-      dispatch(toggleContext(true))
-      dispatch(setNotificationContent({
-        title   : 'Enter state hook variable name',
-        options : [],
-        event   : ({ active = 'temp', options }) => {
+    'make react function component' : () => {
+      askUserAndCallServer({
+        dispatch,
+        title :  'Enter Component Name',
+        callServer({ active }) {
           socket.emit('addNewItem', {
             changeType : 'file',
             type       : 'reactFunctionComponent',
@@ -74,13 +85,11 @@ function setupPage({
               name : active
             }
           })
-
-          resetContext()
         }
-      }))
+      })
     },
 
-    'add react function component at line number :line' : (line) => {
+    'make react function component at line number :line' : (line) => {
       socket.emit('addNewItem', {
         line,
         changeType : 'line',
@@ -89,12 +98,11 @@ function setupPage({
       })
     },
 
-    'add state hook at line number *line' : (line) => {
-      dispatch(toggleContext(true))
-      dispatch(setNotificationContent({
-        title   : 'Enter state hook variable name',
-        options : [],
-        event   : ({ active = 'temp', options }) => {
+    'make state hook at line number *line' : (line) => {
+      askUserAndCallServer({
+        dispatch,
+        title :  'Enter state hook variable name',
+        callServer({ active }) {
           socket.emit('addNewItem', {
             line,
             type : 'reactStateHook',
@@ -103,10 +111,8 @@ function setupPage({
               name : active
             }
           })
-
-          resetContext()
         }
-      }))
+      })
     },
 
     'add use effect at line number *line' : (line) => {
@@ -118,40 +124,49 @@ function setupPage({
     },
 
     'make reducer function' : () => {
-      dispatch(toggleContext(true))
-      dispatch(setNotificationContent({
-        options    : [],
-        changeType : 'file',
-        title      : 'Enter Reducer Function Name',
-        event      : ({ active = 'temp', options }) => {
+      askUserAndCallServer({
+        dispatch,
+        title :  'Enter Reducer Function Name',
+        callServer({ active }) {
           socket.emit('addNewItem', {
             line : 1,
             type : 'reducerFunction',
             file : selectedFilePath,
             meta : { name : active }
           })
-
-          resetContext()
         }
-      }))
+      })
     },
 
     'make actions at line number :line' : (line) => {
-      dispatch(toggleContext(true))
-      dispatch(setNotificationContent({
-        options : [],
-        title   : 'Enter Reducer Function Name',
-        event   : ({ active = 'temp', options }) => {
+      askUserAndCallServer({
+        dispatch,
+        title :  'Enter Action Name',
+        callServer({ active }) {
           socket.emit('addNewItem', {
             line,
             type : 'reduxActions',
             file : selectedFilePath,
             meta : { name : active }
           })
-
-          resetContext()
         }
-      }))
+      })
+
+      // dispatch(toggleContext(true))
+      // dispatch(setNotificationContent({
+      //   options : [],
+      //   title   : 'Enter Reducer Function Name',
+      //   event   : ({ active = 'temp', options }) => {
+      //     socket.emit('addNewItem', {
+      //       line,
+      //       type : 'reduxActions',
+      //       file : selectedFilePath,
+      //       meta : { name : active }
+      //     })
+
+      //     resetContext()
+      //   }
+      // }))
     },
 
     'import library *libraryName' : (libraryName) => {
