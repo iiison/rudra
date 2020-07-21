@@ -53,8 +53,52 @@ function reactFunctionComponentHelper({ code, name }) {
   return generate(ast).code
 }
 
+function checkForHooksInImport(code) {
+  const contentAst = generateAST(code)
+
+  let isEffectHook = false,
+    isStateHook = false,
+    reactImportLine = 0
+
+  traverse(contentAst, {
+    ImportDeclaration : ({ node, scope }) => {
+      if (node.source.value === 'react') {
+        reactImportLine = node.loc.start.line
+
+        traverse(
+          node,
+          {
+            ImportSpecifier : ({ node : { imported : { name } } }) => {
+              switch (name) {
+              case 'useEffect':
+                isEffectHook = true
+                break
+
+              case 'useState':
+                isStateHook = true
+                break
+
+              default:
+                // nothing
+              }
+            }
+          },
+          scope
+        )
+      }
+    }
+  })
+
+  return {
+    isEffectHook,
+    isStateHook,
+    reactImportLine
+  }
+}
+
 module.exports = {
   generateAST,
   actionMakerHelper,
+  checkForHooksInImport,
   reactFunctionComponentHelper
 }

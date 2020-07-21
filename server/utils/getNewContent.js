@@ -3,6 +3,7 @@ const path = require('path')
 
 const {
   actionMakerHelper,
+  checkForHooksInImport,
   reactFunctionComponentHelper
 } = require('./codeGeneratorHelpers')
 
@@ -33,6 +34,9 @@ function getNewContent({ type, meta }) {
   const rawResult = map[type]
   const { name } = meta
 
+  /** TODO:
+   * Change this shit to switch or something better
+   **/
   if (type === 'reduxActions') {
     return actionMakerHelper({
       code       : map.reduxActions,
@@ -61,6 +65,7 @@ function getNewContent({ type, meta }) {
 }
 
 module.exports = {
-  getNewContent
+  getNewContent,
+  checkForHooksInImport
 }
 

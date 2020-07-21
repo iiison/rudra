@@ -115,7 +115,7 @@ function setupPage({
       })
     },
 
-    'add use effect at line number *line' : (line) => {
+    'make use effect at line number *line' : (line) => {
       socket.emit('addNewItem', {
         line,
         type : 'reactUseEffectHook',

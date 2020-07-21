@@ -1,5 +1,8 @@
-const { getNewContent }    = require('../../utils/getNewContent')
 const { formatInputQuery } = require('../../utils/utils')
+const {
+  getNewContent,
+  checkForHooksInImport
+}    = require('../../utils/getNewContent')
 
 const { getUtils } = require('./editorUtils')
 
@@ -11,6 +14,7 @@ function addEditorPageEvents({ client }) {
   const {
     handleFileImport,
     handleLibraryImport,
+    addReactHooksInImport,
     getLastEntryOfImportType,
     validateAndSaveFileContent
   } = getUtils()
@@ -78,8 +82,6 @@ function addEditorPageEvents({ client }) {
   })
 
   client.on('addNewItem', (data) => {
-    let newContent
-
     const {
       line,
       type,
@@ -90,8 +92,19 @@ function addEditorPageEvents({ client }) {
 
     const normalizedLineNumber = parseInt(line, 10) - 1
     const fileContent          = readFile(file)
-    const fileContentByLine    = fileContent.split(/\r?\n/)
-    const newPart              = getNewContent({ type, meta })
+    const newPart              = getNewContent({ type, meta, fileContent })
+
+    let fileContentByLine = fileContent.split(/\r?\n/),
+      newContent
+
+    // Should have been done at getNewContent level
+    if (type === 'reactStateHook' || type === 'reactUseEffectHook') {
+      fileContentByLine = addReactHooksInImport({
+        type,
+        fileContentByLine,
+        ...checkForHooksInImport(fileContent)
+      })
+    }
 
     if (changeType === 'line') {
       const firstPart = fileContentByLine.slice(0, normalizedLineNumber)

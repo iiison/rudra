@@ -21,12 +21,13 @@ function getLastEntryOfImportType(type, code) {
     ImportDeclaration : ({ node }) => {
       const lineNumber = node.loc.start.line
 
+      // Fix Repetitive Logic.
       if (node.source.value.includes('./')) {
-        lastEntryOfType.file = lineNumber - lastEntryOfType.file <= 3
+        lastEntryOfType.file = lineNumber - lastEntryOfType.file <= 2
           ? lineNumber
           : lastEntryOfType.file
       } else {
-        lastEntryOfType.library = lineNumber - lastEntryOfType.library <= 3
+        lastEntryOfType.library = lineNumber - lastEntryOfType.library <= 2
           ? lineNumber
           : lastEntryOfType.library
       }
@@ -170,9 +171,42 @@ function getUtils() {
     }
   }
 
+  function addReactHooksInImport({
+    type,
+    reactImportLine,
+    fileContentByLine
+  }) {
+    const normalizedIndex = reactImportLine - 1
+    const hookNameTypeMap = {
+      reactUseEffectHook : 'useEffect',
+      reactStateHook     : 'useState'
+    }
+    const hookName = hookNameTypeMap[type]
+
+    let reactImportCode = fileContentByLine[normalizedIndex]
+    const localImportIndex = reactImportCode.indexOf('{')
+
+    if (localImportIndex === -1) {
+      reactImportCode = 'import React, {} from \'react\'\n'
+    }
+
+    if (!reactImportCode.includes(hookName)) {
+      reactImportCode = reactImportCode.replace('{', `{ ${hookName}, `)
+    }
+
+    fileContentByLine[normalizedIndex] = reactImportCode
+
+    console.log('%%%%%%%%%%%%%%%%%%%')
+    console.log(fileContentByLine[normalizedIndex])
+    console.log('%%%%%%%%%%%%%%%%%%%')
+
+    return fileContentByLine
+  }
+
   return {
     handleFileImport,
     handleLibraryImport,
+    addReactHooksInImport,
     getLastEntryOfImportType,
     validateAndSaveFileContent
   }
