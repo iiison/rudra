@@ -11,6 +11,7 @@ function addEditorPageEvents({ client }) {
   const {
     handleFileImport,
     handleLibraryImport,
+    getLastEntryOfImportType,
     validateAndSaveFileContent
   } = getUtils()
 
@@ -37,11 +38,23 @@ function addEditorPageEvents({ client }) {
         formattedNames
       })
     } else if (operation === 'library import confirmation') {
-      const importContent = `import {} from '${data.imortItem}'\r`
+      /** TODO
+       * - It's not a good idea to do this operation here.
+       *   Should be handled in handleLibraryImprot function.
+       *
+       * - Should check if the file/lib was imported already.
+       */
+
+      const importCode = `import {} from '${data.imortItem}'\r`
       const fileContent = readFile(file)
+
+      const importLine = getLastEntryOfImportType('library', fileContent)
+
       const fileContentByLine = fileContent.split(/\r?\n/)
 
-      const newContent = [importContent, ...fileContentByLine]
+      const firstPart = fileContentByLine.slice(0, importLine)
+      const restPart = fileContentByLine.slice(importLine)
+      const newContent = [...firstPart, importCode, ...restPart]
 
       validateAndSaveFileContent({
         data,

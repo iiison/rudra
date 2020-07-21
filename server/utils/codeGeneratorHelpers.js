@@ -4,8 +4,13 @@ const generate = require('@babel/generator').default
 const { startCase } = require('lodash')
 
 function generateAST(code, options = {}) {
+  const defaultASTGenOptions = {
+    sourceType : 'unambiguous',
+    plugins    : ['jsx']
+  }
+
   try {
-    return parse(code, options)
+    return parse(code, { ...defaultASTGenOptions, ...options })
   } catch (error) {
     return error.message
   }
@@ -33,11 +38,7 @@ function actionMakerHelper({ code, actionName }) {
 }
 
 function reactFunctionComponentHelper({ code, name }) {
-  const options = {
-    sourceType : 'unambiguous',
-    plugins    : ['jsx']
-  }
-  const ast = generateAST(code, options)
+  const ast = generateAST(code)
   const sentenceCase = startCase(name)
 
   traverse(ast, {
@@ -52,9 +53,8 @@ function reactFunctionComponentHelper({ code, name }) {
   return generate(ast).code
 }
 
-// function hookHelper()
-
 module.exports = {
+  generateAST,
   actionMakerHelper,
   reactFunctionComponentHelper
 }

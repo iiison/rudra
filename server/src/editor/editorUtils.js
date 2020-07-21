@@ -1,9 +1,44 @@
-const chalk = require('chalk')
-const path  = require('path')
+const chalk    = require('chalk')
+const path     = require('path')
+const traverse = require('@babel/traverse').default
 
-const { format } = require('../../utils/fileFormatter')
+const { format }                  = require('../../utils/fileFormatter')
+const { findFile }                = require('../../utils/listFiles')
+const { generateAST }             = require('../../utils/codeGeneratorHelpers')
 const { findSimilaritiesInLists } = require('../../utils/utils')
-const { findFile } = require('../../utils/listFiles')
+
+function getLastEntryOfImportType(type, code) {
+  const ast = generateAST(code, {
+    sourceType : 'unambiguous',
+    plugins    : ['jsx']
+  })
+  const lastEntryOfType = {
+    library : 1,
+    file    : 0
+  }
+
+  traverse(ast, {
+    ImportDeclaration : ({ node }) => {
+      const lineNumber = node.loc.start.line
+
+      if (node.source.value.includes('./')) {
+        lastEntryOfType.file = lineNumber - lastEntryOfType.file <= 3
+          ? lineNumber
+          : lastEntryOfType.file
+      } else {
+        lastEntryOfType.library = lineNumber - lastEntryOfType.library <= 3
+          ? lineNumber
+          : lastEntryOfType.library
+      }
+    }
+  })
+
+  lastEntryOfType.file = lastEntryOfType.file === 0
+    ? lastEntryOfType.file
+    : lastEntryOfType.library + 1
+
+  return lastEntryOfType[type]
+}
 
 function getUtils() {
   const { projPath } = global
@@ -33,7 +68,7 @@ function getUtils() {
 
     if (errorCount || warningCount) {
       console.log(chalk.red('*****************************'))
-      console.log(chalk.red('ERROR: Validation Error @ validateAndSaveFileContent src/editor/editorUtils.js:\n'))
+      console.log(chalk.red('ERROR : Validation Error @ validateAndSaveFileContent src/editor/editorUtils.js :\n'))
       console.log(errors)
       console.log(chalk.red('*****************************'))
 
@@ -47,12 +82,16 @@ function getUtils() {
     }
   }
 
-  function addFileImportCode(importCode, data) {
+  function addImportCode(importCode, data, importType) {
     const { file } = data
     const fileContent = readFile(file)
     const fileContentByLine = fileContent.split(/\r?\n/)
+    const importLine = getLastEntryOfImportType(importType, fileContent)
 
-    const newContent = [importCode, ...fileContentByLine]
+    const firstPart = fileContentByLine.slice(0, importLine - 1)
+    const restPart = fileContentByLine.slice(importLine - 1)
+
+    const newContent = [...firstPart, importCode, ...restPart]
 
     validateAndSaveFileContent({
       file,
@@ -77,7 +116,7 @@ function getUtils() {
     if (filteredList.length === 1) {
       const importContent = `import {} from '${filteredList[0]}'\r`
 
-      addFileImportCode(importContent, data)
+      addImportCode(importContent, data, 'library')
     } else {
       ioServer.emit('import operation', {
         operationOn,
@@ -99,7 +138,7 @@ function getUtils() {
     const filteredList = defaultFilteredList || await findFile(projPath, formattedNames)
 
     console.log(chalk.yellow('*****************************'))
-    console.log(chalk.yellow('INFO: filtered lists handleFileImport @ src/editor/editorUtils.js:\n'))
+    console.log(chalk.yellow('INFO : filtered lists handleFileImport @ src/editor/editorUtils.js :\n'))
     console.log(filteredList)
     console.log(defaultFilteredList)
     console.log(chalk.yellow('*****************************'))
@@ -120,7 +159,7 @@ function getUtils() {
 
       const importContent = `import {} from '${importRightPart}'`
 
-      addFileImportCode(importContent, data)
+      addImportCode(importContent, data, 'file')
     } else {
       ioServer.emit('import operation', {
         operationOn,
@@ -134,6 +173,7 @@ function getUtils() {
   return {
     handleFileImport,
     handleLibraryImport,
+    getLastEntryOfImportType,
     validateAndSaveFileContent
   }
 }
