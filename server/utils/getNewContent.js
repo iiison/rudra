@@ -55,7 +55,7 @@ function getNewContent({ type, meta }) {
     })
   }
 
-  if (type === 'reduxAsyncAction') {
+  if (type === 'reduxAsyncAction' || type === 'reducerFunction') {
     return rawResult.replace(/%/g, name).split(/\r?\n/)
   }
 
