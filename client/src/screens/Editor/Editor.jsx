@@ -153,6 +153,21 @@ function setupPage({
       })
     },
 
+    'make asynchronous action at line number :line' : (line) => {
+      askUserAndCallServer({
+        dispatch,
+        title :  'Enter Async Action Name',
+        callServer({ active }) {
+          socket.emit('addNewItem', {
+            line,
+            type : 'reduxAsyncAction',
+            file : selectedFilePath,
+            meta : { name : active }
+          })
+        }
+      })
+    },
+
     'import library *libraryName' : (libraryName) => {
       socket.emit('import operation', {
         name      : libraryName,

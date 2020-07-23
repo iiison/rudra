@@ -1,0 +1,22 @@
+export function _fetchData() {
+  return async (dispatch) => {
+    dispatch(%())
+
+    try {
+      // const response = await get({
+      //   path    : 'some/path',
+      //   payload : {},
+      //   dispatch
+      // })
+
+      const body = await fetch('https://backendapi.turing.com/departments')
+      const response = await body.json()
+
+      dispatch(%Success(response))
+    } catch (error){
+      dispatch(%Failure(error.message))
+
+      throw error.message
+    }
+  }
+}

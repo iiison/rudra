@@ -28,7 +28,11 @@ function getNewContent({ type, meta }) {
     reduxActions : fs.readFileSync(
       path.resolve('./static/reduxActions.txt'),
       'utf8'
-    )
+    ),
+    reduxAsyncAction : fs.readFileSync(
+      path.resolve('./static/reduxAsyncAction.txt'),
+      'utf8'
+    ),
   }
 
   const rawResult = map[type]
@@ -49,6 +53,10 @@ function getNewContent({ type, meta }) {
       code : map.reactFunctionComponent,
       name
     })
+  }
+
+  if (type === 'reduxAsyncAction') {
+    return rawResult.replace(/%/g, name).split(/\r?\n/)
   }
 
   if (name) {
